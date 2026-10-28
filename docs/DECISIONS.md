@@ -8,7 +8,7 @@ Decision log. Add a new entry whenever a choice is made. Do not silently change 
 |---|---|---|
 | 1 | Backend in Go with net/http and chi | Cheap concurrency for live connections, stable long term |
 | 2 | Modular monolith, not microservices | About 20 test users now, aiming at 10k. Simpler to build and run |
-| 3 | PostgreSQL for app data, separate database for csag | Clear boundary, auth data never mixes with app data |
+| 3 | One PostgreSQL database shared by csag and the app, in two schemas (auth and app) with a separate database user for each | One backup and restore, tables stay separate. Depends on the schema test in docs/AUTH.md, fallback is two databases on the same server |
 | 4 | Redis for cache, rate limits, pub/sub, jobs | Standard and small |
 | 5 | Auth handled by csag, separate process, same server | Owner's choice, ships with the product |
 | 6 | Social login: GitHub and Google for now | Owner's choice |
@@ -39,3 +39,5 @@ Decision log. Add a new entry whenever a choice is made. Do not silently change 
 5. Domain names: app, api, auth, auth console.
 6. Email sending provider for csag and app mail (SMTP details).
 7. Policy for minors in Youth Ministry chats (see docs/SECURITY.md).
+8. Does csag run correctly inside its own schema (search_path)? If not, use two databases on the same server.
+9. How do csag verification and magic link emails get delivered? The csag env has no SMTP settings (see docs/AUTH.md, spike item 11).

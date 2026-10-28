@@ -1,0 +1,45 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+
+# Data and uploads
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+data/
+backups/
+media/
+
+# Go
+bin/
+*.exe
+*.test
+*.out
+coverage.out
+
+# Node and web
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.turbo/
+*.tsbuildinfo
+
+# Logs and temp
+*.log
+tmp/
+.cache/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

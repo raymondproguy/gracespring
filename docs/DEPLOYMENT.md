@@ -14,7 +14,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 - app.<domain>: static web build with SPA fallback, gzip and brotli, long cache for hashed assets, no cache for index.html and the service worker.
 - api.<domain>: reverse proxy to the API.
 - auth.<domain>: reverse proxy to csag.
-- authadmin.<domain>: reverse proxy to the csag console, restricted by IP allowlist or basic auth in addition to csag login.
+- authadmin.<domain>: reverse proxy to the csag admin endpoints (/v1/admin/*), restricted by IP allowlist or basic auth in addition to csag admin login. The same path is blocked on auth.<domain>.
 - media.<domain>: uploaded files, long cache, safe headers (nosniff, content disposition for downloads).
 - Prefer one parent domain for all of them so cookies and CORS stay simple.
 - Security headers: HSTS, CSP, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
@@ -22,7 +22,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 ## csag
 
 - Install the binary, generate the template with csag env, store the result in /etc/gracespring/csag.env with mode 600. Never commit it.
-- Set DATABASE_URL to its own Postgres database and role (not the app's), a long random JWT_SECRET, and CORS_ORIGINS to the app origin only.
+- Set DATABASE_URL to the shared database using the csag database user with search_path auth, a long random JWT_SECRET, ENCRYPTION_KEY, and CORS_ORIGINS to the app origin only. Set PORT=8081, BASE_URL to the public auth address, SKIP_AUTO_MIGRATE=true and the WEBAUTHN_* values. A full commented list is in deploy/csag.env.example.
 - Configure GitHub and Google OAuth credentials and callback URLs in that file and in the provider consoles.
 - Run as a systemd service with restart on failure. Bind to localhost and expose only through Caddy.
 - Record version and checksum of the binary in docs/AUTH_FINDINGS.md.
@@ -30,18 +30,18 @@ Single server for now. csag ships with the product on the same machine. About 20
 ## Environment files (names only, values never in git)
 
 - /etc/gracespring/api.env: DATABASE_URL, REDIS_URL, AUTH_VERIFY settings (per spike), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
-- /etc/gracespring/csag.env as above.
+- /etc/gracespring/csag.env as above (template in deploy/csag.env.example). The API and csag may point at the same DATABASE_URL host but use different users and schemas, and different Redis database numbers.
 - The repo contains only .env.example files with placeholders.
 
 ## Database
 
-- Separate databases and roles for the app and for csag. Least privilege.
+- One database with two schemas: auth for csag and app for GraceSpring. Each has its own database user with rights only on its own schema. The csag connection string sets search_path to auth, the app sets it to app. If the schema test in docs/AUTH.md fails, use two databases on the same server instead.
 - Migrations run with the goose command at deploy time, before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed.
 - Postgres tuned for the machine size, connection pool in the API sized to match.
 
 ## Backups
 
-- Nightly pg_dump of both databases (compressed, encrypted) plus a copy of the media directory, kept 14 daily and 8 weekly. Copy off the server (object storage or another machine).
+- Nightly pg_dump of the database, all schemas (compressed, encrypted) plus a copy of the media directory, kept 14 daily and 8 weekly. Copy off the server (object storage or another machine).
 - Monitor backup age. Test a full restore onto a scratch machine before tagging v1 and then monthly.
 
 ## Release procedure
@@ -49,7 +49,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 1. All checks green on main. PROGRESS.md and docs updated.
 2. Take a fresh backup.
 3. Build on the server or in CI: API, worker, gateway binaries and the web bundle. Place them in releases/<tag>/.
-4. Run migrations.
+4. Run csag migrate if csag changed, then the app migrations.
 5. Switch the current symlink and restart services one at a time. Check health and readiness.
 6. Smoke test: sign in, read a devotional, play audio, post a comment, admin publish.
 7. Tag the release (annotated, for example v1) on main and note it in PROGRESS.md.
