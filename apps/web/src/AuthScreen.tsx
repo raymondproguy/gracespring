@@ -3,12 +3,12 @@ import { useState, type FormEvent } from "react";
 type AuthScreenProps = {
   mode: "signin" | "signup";
   onModeChange: (mode: "signin" | "signup") => void;
-  onAuthenticated: (accessToken: string, isNewAccount: boolean) => void;
+  onAuthenticated: (accessToken: string, refreshToken: string, isNewAccount: boolean) => void;
   authBaseUrl: string;
 };
 
 type AuthResponse = {
-  data?: { access_token?: string };
+  data?: { access_token?: string; refresh_token?: string };
   error?: { message?: string };
 };
 
@@ -40,10 +40,11 @@ export function AuthScreen({ mode, onModeChange, onAuthenticated, authBaseUrl }:
       if (isSignup) await request("signup", { email: email.trim(), password });
       const result = await request("login", { email: email.trim(), password });
       const accessToken = result.data?.access_token;
-      if (!accessToken) {
+      const refreshToken = result.data?.refresh_token;
+      if (!accessToken || !refreshToken) {
         throw new Error("This sign-in needs another verification step that isn’t available here yet.");
       }
-      onAuthenticated(accessToken, isSignup);
+      onAuthenticated(accessToken, refreshToken, isSignup);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn’t sign you in. Please try again.");
     } finally {

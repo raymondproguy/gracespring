@@ -16,6 +16,8 @@ type ApiError = { error?: { message?: string } };
 type ProfileOnboardingProps = {
   accessToken: string;
   apiBaseUrl?: string;
+  mode?: "onboarding" | "edit";
+  onCancel?: () => void;
   onComplete: (profile: Profile) => void;
 };
 
@@ -24,6 +26,8 @@ const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 export function ProfileOnboarding({
   accessToken,
   apiBaseUrl = "",
+  mode = "onboarding",
+  onCancel,
   onComplete,
 }: ProfileOnboardingProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -154,8 +158,8 @@ export function ProfileOnboarding({
   if (!profile) {
     return (
       <main className="profile-onboarding">
-        <p className="eyebrow">Your profile</p>
-        <h1>Let’s get you started</h1>
+        <p className="eyebrow">{mode === "edit" ? "Your account" : "Your profile"}</p>
+        <h1>{mode === "edit" ? "Your profile" : "Let’s get you started"}</h1>
         <p className="profile-onboarding__intro">We couldn’t load your profile right now.</p>
         {error && <p className="profile-onboarding__error" role="alert">{error}</p>}
         <button className="profile-onboarding__button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} type="button">
@@ -167,11 +171,13 @@ export function ProfileOnboarding({
 
   return (
     <main className="profile-onboarding">
-      <p className="eyebrow">One last step</p>
-      <h1>Make yourself at home</h1>
+      <p className="eyebrow">{mode === "edit" ? "Your account" : "One last step"}</p>
+      <h1>{mode === "edit" ? "Your profile" : "Make yourself at home"}</h1>
       <p className="profile-onboarding__intro">
-        Tell your church family a little about you. You can change these details any time.
+        {mode === "edit" ? "Manage the details your church family sees." : "Tell your church family a little about you. You can change these details any time."}
       </p>
+      {mode === "edit" && <p className="profile-onboarding__email">Signed in as <strong>{profile.email ?? "Email unavailable"}</strong></p>}
+      {mode === "edit" && onCancel && <button className="profile-onboarding__back" onClick={onCancel} type="button">← Back to home</button>}
 
       <form className="profile-onboarding__form" onSubmit={submit}>
         <label className="profile-onboarding__photo">
@@ -231,7 +237,7 @@ export function ProfileOnboarding({
         {error && <p className="profile-onboarding__error" role="alert">{error}</p>}
 
         <button className="profile-onboarding__button" disabled={saving} type="submit">
-          {saving ? "Saving your profile…" : "Continue to GraceSpring"}
+          {saving ? "Saving your profile…" : mode === "edit" ? "Save changes" : "Continue to GraceSpring"}
         </button>
       </form>
     </main>

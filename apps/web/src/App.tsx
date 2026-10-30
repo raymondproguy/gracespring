@@ -2,12 +2,60 @@ import { APP_NAME } from "@gracespring/shared";
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { AuthScreen } from "./AuthScreen";
 import { ProfileOnboarding, type Profile } from "./ProfileOnboarding";
+import { SettingsPage } from "./SettingsPage";
 
 const authBaseUrl = import.meta.env.VITE_AUTH_BASE_URL || "http://127.0.0.1:8080";
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8082";
 
 type Screen = "welcome" | "signin" | "signup" | "profile" | "app";
 type NavigationItem = { label: string; path: string; icon: string };
+type TokenPair = { access_token: string; refresh_token: string };
+let refreshInFlight: Promise<TokenPair> | null = null;
+const refreshTokenMaxAge = 30 * 24 * 60 * 60 * 1000;
+
+function storedRefreshToken(): string | null {
+  try {
+    const token = localStorage.getItem("gs-refresh-token");
+    const savedAt = Number(localStorage.getItem("gs-refresh-token-saved-at"));
+    if (!token || !Number.isFinite(savedAt) || Date.now() - savedAt > refreshTokenMaxAge) {
+      localStorage.removeItem("gs-refresh-token");
+      localStorage.removeItem("gs-refresh-token-saved-at");
+      return null;
+    }
+    return token;
+  } catch { return null; }
+}
+
+function storeRefreshToken(token: string): void {
+  localStorage.setItem("gs-refresh-token", token);
+  localStorage.setItem("gs-refresh-token-saved-at", String(Date.now()));
+}
+
+function tokenExpiry(token: string): number | null {
+  try {
+    const segment = token.split(".")[1];
+    if (!segment) return null;
+    const base64 = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="))) as { exp?: unknown };
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch { return null; }
+}
+
+function refreshSession(authBase: string, currentRefreshToken: string): Promise<TokenPair> {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${authBase}/v1/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: currentRefreshToken }),
+    }).then(async (response) => {
+      const body = (await response.json()) as { data?: Partial<TokenPair> };
+      if (!response.ok || !body.data?.access_token || !body.data.refresh_token) throw new Error("Session expired");
+      return { access_token: body.data.access_token, refresh_token: body.data.refresh_token };
+    });
+  }
+  const request = refreshInFlight;
+  return request.finally(() => { if (refreshInFlight === request) refreshInFlight = null; });
+}
 
 const primaryNavigation: NavigationItem[] = [
   { label: "Home", path: "/", icon: "home" },
@@ -32,7 +80,7 @@ const mobileNavigation = [primaryNavigation[0], primaryNavigation[1], primaryNav
 function screenFromPath(path: string): Screen {
   if (path === "/signin") return "signin";
   if (path === "/signup") return "signup";
-  if (path === "/onboarding/profile") return "profile";
+  if (path === "/onboarding/profile" || path === "/profile") return "profile";
   if (path === "/" && !window.history.state?.signedIn) return "welcome";
   return "app";
 }
@@ -95,6 +143,8 @@ function PlaceholderPage({ path, onNavigate }: { path: string; onNavigate: (path
 export function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(storedRefreshToken);
+  const [authLoading, setAuthLoading] = useState(() => Boolean(storedRefreshToken()));
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileAttempt, setProfileAttempt] = useState(0);
@@ -102,7 +152,7 @@ export function App() {
     try { return localStorage.getItem("gs-theme") === "dark" ? "dark" : "light"; } catch { return "light"; }
   });
   const screen = screenFromPath(path);
-  const activeScreen: Screen = (screen === "profile" || screen === "app") && !accessToken ? "signin" : screen;
+  const activeScreen: Screen = (screen === "profile" || screen === "app") && !accessToken && !authLoading ? "signin" : screen;
 
   useEffect(() => {
     function handlePopState() {
@@ -116,6 +166,40 @@ export function App() {
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem("gs-theme", theme); } catch { /* Theme still applies for this session. */ }
   }, [theme]);
+
+  useEffect(() => {
+    const currentRefreshToken = refreshToken ?? "";
+    if (currentRefreshToken === "") return;
+    let cancelled = false;
+    let timer: number | undefined;
+    async function rotateToken() {
+      try {
+        const tokens = await refreshSession(authBaseUrl, currentRefreshToken);
+        if (cancelled) return;
+        try { storeRefreshToken(tokens.refresh_token); } catch { /* Keep the rotated token in memory. */ }
+        setAccessToken(tokens.access_token);
+        setRefreshToken(tokens.refresh_token);
+      } catch {
+        if (cancelled) return;
+        try { localStorage.removeItem("gs-refresh-token"); } catch { /* Clear in-memory credentials below. */ }
+        try { localStorage.removeItem("gs-refresh-token-saved-at"); } catch { /* Continue clearing the local session. */ }
+        setAccessToken(null);
+        setRefreshToken(null);
+        setProfile(null);
+        window.history.replaceState({}, "", "/signin");
+        setPath("/signin");
+      } finally {
+        if (!cancelled) setAuthLoading(false);
+      }
+    }
+    if (!accessToken) {
+      void rotateToken();
+    } else {
+      const expiry = tokenExpiry(accessToken);
+      if (expiry) timer = window.setTimeout(() => void rotateToken(), Math.max(1000, expiry - Date.now() - 60_000));
+    }
+    return () => { cancelled = true; if (timer !== undefined) window.clearTimeout(timer); };
+  }, [accessToken, refreshToken]);
 
   useEffect(() => {
     if (screen !== "app" || !accessToken) return;
@@ -137,8 +221,10 @@ export function App() {
     setPath(nextPath);
   }
 
-  function handleAuthenticated(token: string, isNewAccount: boolean) {
+  function handleAuthenticated(token: string, nextRefreshToken: string, isNewAccount: boolean) {
     setAccessToken(token);
+    setRefreshToken(nextRefreshToken);
+    try { storeRefreshToken(nextRefreshToken); } catch { /* Keep the current session in memory. */ }
     window.history.replaceState({ signedIn: true }, "", isNewAccount ? "/onboarding/profile" : "/");
     setPath(isNewAccount ? "/onboarding/profile" : "/");
   }
@@ -148,6 +234,24 @@ export function App() {
     event.preventDefault();
     navigate(destination);
   }
+
+  async function signOutEverywhere() {
+    try {
+      if (accessToken) await fetch(`${authBaseUrl}/v1/logout-all`, { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } });
+    } catch {
+      // The local refresh token is still removed when csag is unavailable.
+    } finally {
+      try { localStorage.removeItem("gs-refresh-token"); } catch { /* Clear in-memory credentials below. */ }
+      try { localStorage.removeItem("gs-refresh-token-saved-at"); } catch { /* Continue clearing the local session. */ }
+      setAccessToken(null);
+      setRefreshToken(null);
+      setProfile(null);
+      window.history.replaceState({}, "", "/signin");
+      setPath("/signin");
+    }
+  }
+
+  if (authLoading && !accessToken) return <main className="profile-onboarding" aria-busy="true"><div className="profile-onboarding__skeleton" aria-hidden="true"/><p role="status">Restoring your session…</p></main>;
 
   if (activeScreen === "signin" || activeScreen === "signup") {
     return (
@@ -165,6 +269,8 @@ export function App() {
       <ProfileOnboarding
         accessToken={accessToken}
         apiBaseUrl={apiBaseUrl}
+        mode={path === "/profile" ? "edit" : "onboarding"}
+        onCancel={() => navigate("/")}
         onComplete={(savedProfile) => {
           setProfile(savedProfile);
           navigate("/");
@@ -186,7 +292,7 @@ export function App() {
           <div className="sidebar-navigation__divider"/>
           {visibleNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon}/><span>{item.label}</span></a>)}
         </nav>
-        <button className="shell-signout" onClick={() => { setAccessToken(null); setProfile(null); navigate("/signin", true); }} type="button"><Icon name="logout"/>Sign out</button>
+        <button className="shell-signout" onClick={() => void signOutEverywhere()} type="button"><Icon name="logout"/>Sign out everywhere</button>
       </aside>
       <main className="app-main" id="main-content">
         <header className="app-header">
@@ -202,7 +308,9 @@ export function App() {
         <div className="app-page">
           {isHome
             ? <HomeContent profile={profile} loading={!profile && !profileError} error={profileError} onRetry={() => { setProfileError(null); setProfileAttempt((attempt) => attempt + 1); }} onNavigate={navigate}/>
-            : <PlaceholderPage path={path} onNavigate={navigate}/>}
+            : path === "/settings"
+              ? <SettingsPage accessToken={accessToken} authBaseUrl={authBaseUrl} email={profile?.email ?? null} theme={theme} onThemeChange={() => setTheme(theme === "light" ? "dark" : "light")} onSignOut={signOutEverywhere}/>
+              : <PlaceholderPage path={path} onNavigate={navigate}/>}
           <footer className="app-footer">{APP_NAME}</footer>
         </div>
       </main>
