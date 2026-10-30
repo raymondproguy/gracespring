@@ -57,3 +57,57 @@ func (q *Queries) GetProfileRole(ctx context.Context, id uuid.UUID) (string, err
 	err := row.Scan(&role)
 	return role, err
 }
+
+const updateProfile = `-- name: UpdateProfile :one
+UPDATE profiles
+SET display_name = CASE
+        WHEN $1::boolean THEN $2::text
+        ELSE display_name
+    END,
+    bio = CASE
+        WHEN $3::boolean THEN NULLIF($4::text, '')
+        ELSE bio
+    END,
+    ministry = CASE
+        WHEN $5::boolean THEN NULLIF($6::text, '')
+        ELSE ministry
+    END,
+    updated_at = now()
+WHERE id = $7
+RETURNING id, email, display_name, avatar_url, bio, ministry, role, created_at, updated_at
+`
+
+type UpdateProfileParams struct {
+	DisplayNameSet bool
+	DisplayName    *string
+	BioSet         bool
+	Bio            *string
+	MinistrySet    bool
+	Ministry       *string
+	ID             uuid.UUID
+}
+
+func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (Profile, error) {
+	row := q.db.QueryRow(ctx, updateProfile,
+		arg.DisplayNameSet,
+		arg.DisplayName,
+		arg.BioSet,
+		arg.Bio,
+		arg.MinistrySet,
+		arg.Ministry,
+		arg.ID,
+	)
+	var i Profile
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Bio,
+		&i.Ministry,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

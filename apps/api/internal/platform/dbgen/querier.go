@@ -15,6 +15,7 @@ type Querier interface {
 	GetProfile(ctx context.Context, id uuid.UUID) (Profile, error)
 	GetProfileRole(ctx context.Context, id uuid.UUID) (string, error)
 	Ping(ctx context.Context) (int32, error)
+	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (Profile, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -23,6 +23,14 @@ func WriteError(w http.ResponseWriter, status int, code, message string) {
 	})
 }
 
+func WriteFieldErrors(w http.ResponseWriter, status int, code, message string, fields map[string]string) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(errorEnvelope{
+		Error: errorBody{Code: code, Message: message, Fields: fields},
+	})
+}
+
 func WriteData(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)

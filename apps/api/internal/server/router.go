@@ -50,6 +50,7 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 		protected.Use(auth.Middleware(cfg.AuthJWTSecret, profiles, logger))
 		protected.Use(ratelimit.UserMiddleware(redisClient, logger))
 		protected.Get("/me", profiles.GetMe)
+		protected.Patch("/me", profiles.PatchMe)
 	})
 	api.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "The requested resource was not found")
