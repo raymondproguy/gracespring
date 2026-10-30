@@ -23,7 +23,7 @@ Mark with the date and the commit or tag when done.
 - [x] API foundation
 - [x] Auth middleware
 - [x] Profiles
-- [ ] Roles, admin seed, audit log (role change, admin guard, seed command and audit migration implemented; admin user list remains)
+- [x] Roles, admin seed, audit log
 - [ ] Web shell and auth screens
 - [ ] Storage and uploads
 - [ ] Devotionals API and web

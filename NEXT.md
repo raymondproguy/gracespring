@@ -16,7 +16,7 @@ Branch names are suggestions.
 4. [x] feat/api-foundation: config loading from environment, structured logging, chi router, health and readiness endpoints, error format, request IDs, graceful shutdown, Postgres connection, goose migrations, sqlc setup.
 5. [x] feat/api-auth-middleware: verify csag tokens locally (per spike result), load profile and role into request context, rate limit middleware (Redis).
 6. [x] feat/profiles: finish onboarding; email/password signup and sign-in connect new accounts to the profile form and Home. Profile email comes from csag's users table with column-level read-only access (Decision 17).
-7. [ ] feat/roles-admin-seed: role-change endpoint, admin guard, one-time first-admin seed command and role audit log are implemented. Next add an admin user list and review admin workflows.
+7. [x] feat/roles-admin-seed: roles (member, leader, admin), one-time first-admin seed command, admin-only role changes and audit log.
 8. [ ] feat/web-shell: port design tokens and base CSS, app layout (sidebar on desktop, tab bar on mobile), routing, theme toggle, auth screens wired to csag (signin, signup, onboarding), protected routes.
 9. [ ] feat/storage: storage interface, local disk driver, presigned or token based upload endpoint, image variants worker, file validation.
 10. [ ] feat/devotionals-api: categories, series, episodes, drafts, publish, list and detail endpoints, admin write endpoints.
