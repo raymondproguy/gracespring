@@ -6,9 +6,14 @@ package dbgen
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
+	CreateProfile(ctx context.Context, id uuid.UUID) error
+	GetProfile(ctx context.Context, id uuid.UUID) (Profile, error)
+	GetProfileRole(ctx context.Context, id uuid.UUID) (string, error)
 	Ping(ctx context.Context) (int32, error)
 }
 

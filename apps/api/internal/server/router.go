@@ -9,13 +9,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/raymondproguy/gracespring/apps/api/internal/identity"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/auth"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/config"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/httpx"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/ratelimit"
+	"github.com/redis/go-redis/v9"
 )
 
-func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool) http.Handler {
+func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient *redis.Client) http.Handler {
 	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
+	router.Use(middleware.ClientIPFromXFF("127.0.0.0/8", "::1/128"))
+	router.Use(httpx.RequestID)
 	router.Use(httpx.Recoverer(logger))
 	router.Use(httpx.AccessLog(logger))
 	router.Use(httpx.CORS(cfg.AllowedOrigins))
@@ -31,8 +36,29 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool) http.Handle
 			httpx.WriteError(w, http.StatusServiceUnavailable, "dependency_unavailable", "Service is not ready")
 			return
 		}
+		if err := redisClient.Ping(ctx).Err(); err != nil {
+			httpx.WriteError(w, http.StatusServiceUnavailable, "dependency_unavailable", "Service is not ready")
+			return
+		}
 		httpx.WriteData(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
+
+	profiles := identity.NewStore(pool, logger)
+	api := chi.NewRouter()
+	api.Use(ratelimit.IPMiddleware(redisClient, logger))
+	api.Group(func(protected chi.Router) {
+		protected.Use(auth.Middleware(cfg.AuthJWTSecret, profiles, logger))
+		protected.Use(ratelimit.UserMiddleware(redisClient, logger))
+		protected.Get("/me", profiles.GetMe)
+	})
+	api.NotFound(func(w http.ResponseWriter, _ *http.Request) {
+		httpx.WriteError(w, http.StatusNotFound, "not_found", "The requested resource was not found")
+	})
+	api.MethodNotAllowed(func(w http.ResponseWriter, _ *http.Request) {
+		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "The method is not allowed for this resource")
+	})
+	router.Mount("/v1", api)
+
 	router.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "The requested resource was not found")
 	})

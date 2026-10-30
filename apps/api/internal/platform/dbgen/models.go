@@ -3,3 +3,21 @@
 //   sqlc v1.30.0
 
 package dbgen
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type Profile struct {
+	ID          uuid.UUID
+	Email       *string
+	DisplayName string
+	AvatarUrl   *string
+	Bio         *string
+	Ministry    *string
+	Role        string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}

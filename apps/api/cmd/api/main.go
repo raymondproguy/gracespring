@@ -14,6 +14,7 @@ import (
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/db"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/logging"
 	"github.com/raymondproguy/gracespring/apps/api/internal/server"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -41,7 +42,14 @@ func run() error {
 	}
 	defer pool.Close()
 
-	handler := server.New(cfg, logger, pool)
+	redisOptions, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		return errors.New("REDIS_URL is invalid")
+	}
+	redisClient := redis.NewClient(redisOptions)
+	defer redisClient.Close()
+
+	handler := server.New(cfg, logger, pool, redisClient)
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           handler,

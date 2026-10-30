@@ -13,16 +13,20 @@ type Config struct {
 	HTTPAddr       string
 	LogLevel       string
 	DatabaseURL    string
+	RedisURL       string
+	AuthJWTSecret  string
 	DBMaxConns     int32
 	AllowedOrigins []string
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		AppEnv:      value("APP_ENV", "development"),
-		HTTPAddr:    value("HTTP_ADDR", ":8080"),
-		LogLevel:    value("LOG_LEVEL", "info"),
-		DatabaseURL: strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		AppEnv:        value("APP_ENV", "development"),
+		HTTPAddr:      value("HTTP_ADDR", "127.0.0.1:8080"),
+		LogLevel:      value("LOG_LEVEL", "info"),
+		DatabaseURL:   strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		RedisURL:      strings.TrimSpace(value("REDIS_URL", "redis://localhost:6379/0")),
+		AuthJWTSecret: strings.TrimSpace(os.Getenv("AUTH_JWT_SECRET")),
 		AllowedOrigins: splitList(value(
 			"ALLOWED_ORIGINS",
 			"http://localhost:5173",
@@ -53,8 +57,22 @@ func Load() (Config, error) {
 	if err := validateOrigins(cfg.AllowedOrigins); err != nil {
 		return Config{}, err
 	}
+	if err := validateRedisURL(cfg.RedisURL); err != nil {
+		return Config{}, err
+	}
+	if len(cfg.AuthJWTSecret) < 32 {
+		return Config{}, fmt.Errorf("AUTH_JWT_SECRET must contain at least 32 characters")
+	}
 
 	return cfg, nil
+}
+
+func validateRedisURL(raw string) error {
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "redis" && parsed.Scheme != "rediss") || parsed.Host == "" {
+		return fmt.Errorf("REDIS_URL must be a valid Redis URL")
+	}
+	return nil
 }
 
 func validateOrigins(origins []string) error {

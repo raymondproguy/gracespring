@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: API contract for the GraceSpring Family Church app.
 servers:
-  - url: http://localhost:8080
+  - url: http://127.0.0.1:8080
     description: Local development
 paths:
   /health:
@@ -53,8 +53,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorEnvelope"
+  /v1/me:
+    get:
+      operationId: getMe
+      summary: Get the authenticated member's profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Member profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Profile"
+        "401":
+          description: Missing or invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "429":
+          description: Request rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until requests can be retried
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "503":
+          description: Profile or rate-limit storage is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    Profile:
+      type: object
+      required: [id, display_name, role, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: [string, "null"]
+        display_name:
+          type: string
+        avatar_url:
+          type: [string, "null"]
+        bio:
+          type: [string, "null"]
+        ministry:
+          type: [string, "null"]
+        role:
+          type: string
+          enum: [member, leader, admin]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     ErrorEnvelope:
       type: object
       required: [error]

@@ -39,7 +39,7 @@ Requirements: Go 1.25+, Node.js 22.12+, and pnpm 12.9.1.
 ```sh
 pnpm install
 make dev       # web app
-make api       # Go API at localhost:8080
+make api       # Go API at 127.0.0.1:8080
 make build
 make lint
 make test
@@ -48,4 +48,4 @@ make migrate-up      # applies forward migrations only
 make sqlc            # regenerates Go queries from apps/api/sqlc.yaml
 ```
 
-Set `DATABASE_URL` in your shell before starting the API. The app reads configuration only from environment variables and does not load `.env` files. The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.
+Set `DATABASE_URL`, `REDIS_URL`, and `AUTH_JWT_SECRET` in your shell before starting the API. The auth secret must match csag's `JWT_SECRET`. The app reads configuration only from environment variables and does not load `.env` files. The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.

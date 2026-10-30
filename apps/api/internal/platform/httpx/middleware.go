@@ -1,12 +1,23 @@
 package httpx
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 )
+
+func RequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := uuid.NewString()
+		w.Header().Set("X-Request-ID", id)
+		ctx := context.WithValue(r.Context(), middleware.RequestIDKey, id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 type statusRecorder struct {
 	http.ResponseWriter
@@ -77,6 +88,7 @@ func CORS(origins []string) func(http.Handler) http.Handler {
 				w.Header().Add("Vary", "Origin")
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key")
+				w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID, Retry-After, X-RateLimit-Limit")
 			}
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)

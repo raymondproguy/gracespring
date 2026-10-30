@@ -29,7 +29,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 ## Environment files (names only, values never in git)
 
-- /etc/gracespring/api.env: DATABASE_URL, REDIS_URL, AUTH_VERIFY settings (per spike), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
+- /etc/gracespring/api.env: DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
 - /etc/gracespring/csag.env as above (template in deploy/csag.env.example). The API and csag may point at the same DATABASE_URL host but use different users and schemas, and different Redis database numbers.
 - The repo contains only .env.example files with placeholders.
 
@@ -48,7 +48,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 1. All checks green on main. PROGRESS.md and docs updated.
 2. Take a fresh backup.
-3. Build on the server or in CI: API, worker, gateway binaries and the web bundle. Place them in releases/<tag>/.
+3. Build on the server or in CI: API, migration, worker and gateway binaries plus the web bundle. Place them in releases/<tag>/.
 4. Run csag migrate if csag changed, then `gracespring-migrate up` for the app migrations.
 5. Switch the current symlink and restart services one at a time. Check health and readiness.
 6. Smoke test: sign in, read a devotional, play audio, post a comment, admin publish.
