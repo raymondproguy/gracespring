@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-type Profile = {
+export type Profile = {
   id: string;
   email: string | null;
   display_name: string;
@@ -33,6 +33,7 @@ export function ProfileOnboarding({
   const [avatar, setAvatar] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const avatarPreviewRef = useRef<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +72,7 @@ export function ProfileOnboarding({
     }
     void loadProfile();
     return () => controller.abort();
-  }, [accessToken, apiBaseUrl]);
+  }, [accessToken, apiBaseUrl, loadAttempt]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -157,7 +158,7 @@ export function ProfileOnboarding({
         <h1>Let’s get you started</h1>
         <p className="profile-onboarding__intro">We couldn’t load your profile right now.</p>
         {error && <p className="profile-onboarding__error" role="alert">{error}</p>}
-        <button className="profile-onboarding__button" onClick={() => window.location.reload()} type="button">
+        <button className="profile-onboarding__button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} type="button">
           Try again
         </button>
       </main>

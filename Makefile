@@ -13,7 +13,7 @@ test:
 	pnpm test
 
 api:
-	cd apps/api && go run ./cmd/api
+	cd apps/api && HTTP_ADDR=$${HTTP_ADDR:-127.0.0.1:8082} go run ./cmd/api
 
 migrate-up:
 	cd apps/api && go run ./cmd/migrate up

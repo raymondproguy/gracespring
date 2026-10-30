@@ -225,6 +225,78 @@ p {
   animation: profile-shimmer 1.4s ease infinite;
 }
 
+.auth-screen,
+.welcome-screen {
+  --profile-accent: var(--accent, #3b2a96);
+  --profile-bg: var(--bg, #fff);
+  --profile-ink: var(--ink, #14131d);
+  --profile-muted: var(--muted, #747384);
+  width: min(100%, 520px);
+  min-height: 100vh;
+  align-content: center;
+  justify-items: stretch;
+  gap: 0;
+  margin-inline: auto;
+  padding: max(2rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
+  background: var(--profile-bg);
+  color: var(--profile-ink);
+  text-align: left;
+}
+
+.auth-screen .eyebrow,
+.welcome-screen .eyebrow {
+  margin: 0;
+  color: var(--profile-accent);
+}
+
+.auth-screen h1,
+.welcome-screen h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.auth-screen__intro,
+.welcome-screen > p:not(.eyebrow) {
+  margin: 0.8rem 0 1.8rem;
+  color: var(--profile-muted);
+  line-height: 1.6;
+  text-align: left;
+}
+
+.auth-screen__form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.auth-screen__switch {
+  margin-top: 1.4rem;
+  color: var(--profile-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-screen__link,
+.welcome-screen__signin {
+  color: var(--profile-accent);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.welcome-screen__actions {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.welcome-screen__signin {
+  min-height: 3rem;
+  justify-self: center;
+  text-decoration: none;
+}
+
 .profile-onboarding[aria-busy="true"] p {
   margin-top: 1rem;
   text-align: left;

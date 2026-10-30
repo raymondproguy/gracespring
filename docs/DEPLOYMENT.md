@@ -29,7 +29,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 ## Environment files (names only, values never in git)
 
-- /etc/gracespring/api.env: DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
+- /etc/gracespring/api.env: HTTP_ADDR (127.0.0.1:8080), DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
 - /etc/gracespring/csag.env as above (template in deploy/csag.env.example). The API and csag may point at the same DATABASE_URL host but use different users and schemas, and different Redis database numbers.
 - The repo contains only .env.example files with placeholders.
 

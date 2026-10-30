@@ -39,7 +39,7 @@ Requirements: Go 1.25+, Node.js 22.12+, and pnpm 12.9.1.
 ```sh
 pnpm install
 make dev       # web app
-make api       # Go API at 127.0.0.1:8080
+make api       # Go API at 127.0.0.1:8082 (local csag uses 8080)
 make build
 make lint
 make test
@@ -48,4 +48,4 @@ make migrate-up      # applies forward migrations only
 make sqlc            # regenerates Go queries from apps/api/sqlc.yaml
 ```
 
-Set `DATABASE_URL`, `REDIS_URL`, and `AUTH_JWT_SECRET` in your shell before starting the API. The auth secret must match csag's `JWT_SECRET`. The app reads configuration only from environment variables and does not load `.env` files. The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.
+Set `DATABASE_URL`, `REDIS_URL`, and `AUTH_JWT_SECRET` in your shell before starting the API. The auth secret must match csag's `JWT_SECRET`. The API reads configuration only from environment variables. Vite reads `VITE_AUTH_BASE_URL` and `VITE_API_BASE_URL` from the root `.env`; `.env.example` has local defaults for csag on port 8080 and the API on port 8082. See `NEXT.md` for the ordered build queue.
