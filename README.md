@@ -34,4 +34,15 @@ The rules live in `docs/GIT_WORKFLOW.md`, section "Secret check before every com
 
 ## Local development
 
-Not set up yet. The monorepo skeleton (pnpm workspace, Go module, Vite app) is the next milestone after the auth spike. See `NEXT.md` for the ordered work queue.
+Requirements: Go 1.25+, Node.js 22.12+, and pnpm 12.9.1.
+
+```sh
+pnpm install
+make dev       # web app
+make api       # Go API at localhost:8080
+make build
+make lint
+make test
+```
+
+The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.

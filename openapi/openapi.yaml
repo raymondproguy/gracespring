@@ -1,0 +1,29 @@
+openapi: 3.1.0
+info:
+  title: GraceSpring API
+  version: 0.1.0
+  description: API contract for the GraceSpring Family Church app.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Check whether the API process is responding
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [status]
+                    properties:
+                      status:
+                        type: string
+                        const: ok
