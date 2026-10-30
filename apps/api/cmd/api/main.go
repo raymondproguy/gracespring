@@ -13,6 +13,7 @@ import (
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/config"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/db"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/logging"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/storage"
 	"github.com/raymondproguy/gracespring/apps/api/internal/server"
 	"github.com/redis/go-redis/v9"
 )
@@ -49,7 +50,12 @@ func run() error {
 	redisClient := redis.NewClient(redisOptions)
 	defer redisClient.Close()
 
-	handler := server.New(cfg, logger, pool, redisClient)
+	mediaStore, err := storage.NewLocalDisk(cfg.MediaPath, cfg.MediaBaseURL)
+	if err != nil {
+		return err
+	}
+
+	handler := server.New(cfg, logger, pool, redisClient, mediaStore)
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           handler,

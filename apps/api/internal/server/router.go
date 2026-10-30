@@ -10,14 +10,16 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/raymondproguy/gracespring/apps/api/internal/identity"
+	"github.com/raymondproguy/gracespring/apps/api/internal/media"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/auth"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/config"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/httpx"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/ratelimit"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/storage"
 	"github.com/redis/go-redis/v9"
 )
 
-func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient *redis.Client) http.Handler {
+func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient *redis.Client, mediaStore storage.Store) http.Handler {
 	router := chi.NewRouter()
 	router.Use(middleware.ClientIPFromXFF("127.0.0.0/8", "::1/128"))
 	router.Use(httpx.RequestID)
@@ -42,8 +44,12 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 		}
 		httpx.WriteData(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
+	if cfg.AppEnv != "production" {
+		router.Handle("/media/*", media.LocalMediaHandler(cfg.MediaPath))
+	}
 
 	profiles := identity.NewStore(pool, logger)
+	avatars := media.NewAvatarHandler(profiles, mediaStore, cfg.MediaBaseURL, logger)
 	api := chi.NewRouter()
 	api.Use(ratelimit.IPMiddleware(redisClient, logger))
 	api.Group(func(protected chi.Router) {
@@ -51,6 +57,7 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 		protected.Use(ratelimit.UserMiddleware(redisClient, logger))
 		protected.Get("/me", profiles.GetMe)
 		protected.Patch("/me", profiles.PatchMe)
+		protected.Put("/me/avatar", avatars.ServeHTTP)
 	})
 	api.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "The requested resource was not found")

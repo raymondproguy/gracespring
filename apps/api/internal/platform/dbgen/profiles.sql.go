@@ -111,3 +111,33 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (P
 	)
 	return i, err
 }
+
+const updateProfileAvatar = `-- name: UpdateProfileAvatar :one
+UPDATE profiles
+SET avatar_url = $2,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, email, display_name, avatar_url, bio, ministry, role, created_at, updated_at
+`
+
+type UpdateProfileAvatarParams struct {
+	ID        uuid.UUID
+	AvatarUrl *string
+}
+
+func (q *Queries) UpdateProfileAvatar(ctx context.Context, arg UpdateProfileAvatarParams) (Profile, error) {
+	row := q.db.QueryRow(ctx, updateProfileAvatar, arg.ID, arg.AvatarUrl)
+	var i Profile
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Bio,
+		&i.Ministry,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

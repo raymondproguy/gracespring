@@ -35,7 +35,7 @@ Claude Code runs csag locally and records facts in docs/AUTH_FINDINGS.md. Do not
 
 Also run the happy path and failure path for signup, login, refresh, logout, logout-all, verify and a passkey or TOTP login if feasible, and save the request and response examples (with all secrets and tokens redacted) in AUTH_FINDINGS.md.
 
-11. Email delivery. The csag env template has no SMTP settings. It mentions console senders that print verification and magic link messages, EMAIL_TEMPLATE_DIR for the message text, and WEBHOOK_URL for events. Find out from the csag README how a real email reaches a user. Likely options: the GraceSpring API receives csag webhooks or a message hook and sends the email itself through SMTP or a mail provider. Record the working design before building signup, magic link or email change.
+11. Email delivery. The installed csag build has no SMTP sender. Source inspection shows signup does not request email verification, and the signed `WEBHOOK_URL` payload is an audit event without the email or one-time token. Do not use this webhook to send verification or magic-link mail. Before building those flows, choose a supported csag mail integration or change csag to send the message itself, then record the payload and delivery contract.
 12. Shared database test. Create an empty database with two schemas and two users, point csag at it with its own user and search_path set to auth (in the connection string), start it with SKIP_AUTO_MIGRATE=false, then check that every csag table (including schema_migrations, settings, webhook_deliveries, digest_runs, shipped_log_events and the audit tables) was created in the auth schema and nothing in public. Repeat with csag migrate. List all csag table names. If csag cannot stay in its schema, fall back to two databases on the same server and record it in DECISIONS.md.
 13. Admin model. csag has /v1/admin/* endpoints (settings, config tuning, security reports, webhook deliveries, digest, logging). Find out how a csag user becomes a csag admin and whether that is separate from the app role. Keep them separate on purpose: csag admin is for the owner and operator only.
 
@@ -79,5 +79,5 @@ From the csag env template:
 - PASSWORD_HASHER: argon2id.
 - API_KEY_PREFIX: gs so a leaked key is easy to find with secret scanners.
 - ANOMALY_DETECTION and CLOUD_LOGGING: optional, off at first. CLOUD_LOG_HASH_KEY is needed only if redaction is hash.
-- WEBHOOK_URL: off at first. May become the way csag tells the API about new users and emails to send (spike item 11).
+- WEBHOOK_URL: optional audit-event delivery. Its current payload does not contain email addresses or email tokens, so it is not an email delivery mechanism (docs/AUTH_FINDINGS.md, follow-up source inspection).
 - LOG_LEVEL must be debug, info, warn or error, anything else stops startup.

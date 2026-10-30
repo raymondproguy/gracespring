@@ -44,7 +44,7 @@ func (s *Store) GetOrCreateRole(ctx context.Context, userID uuid.UUID) (string, 
 	return s.queries.GetProfileRole(ctx, userID)
 }
 
-type profileResponse struct {
+type Profile struct {
 	ID          uuid.UUID `json:"id"`
 	Email       *string   `json:"email"`
 	DisplayName string    `json:"display_name"`
@@ -135,6 +135,28 @@ func (s *Store) PatchMe(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteData(w, http.StatusOK, toProfileResponse(profile))
 }
 
+func (s *Store) SetAvatar(ctx context.Context, userID uuid.UUID, avatarURL string) (Profile, error) {
+	profile, err := s.queries.UpdateProfileAvatar(ctx, dbgen.UpdateProfileAvatarParams{
+		ID:        userID,
+		AvatarUrl: &avatarURL,
+	})
+	if err != nil {
+		return Profile{}, err
+	}
+	return toProfileResponse(profile), nil
+}
+
+func (s *Store) GetAvatar(ctx context.Context, userID uuid.UUID) (string, error) {
+	profile, err := s.queries.GetProfile(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+	if profile.AvatarUrl == nil {
+		return "", nil
+	}
+	return *profile.AvatarUrl, nil
+}
+
 func normalize(value *string) *string {
 	if value == nil {
 		return nil
@@ -156,8 +178,8 @@ func validateField(fields map[string]string, name string, value *string, maxRune
 	}
 }
 
-func toProfileResponse(profile dbgen.Profile) profileResponse {
-	return profileResponse{
+func toProfileResponse(profile dbgen.Profile) Profile {
+	return Profile{
 		ID:          profile.ID,
 		Email:       profile.Email,
 		DisplayName: profile.DisplayName,

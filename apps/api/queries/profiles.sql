@@ -30,3 +30,10 @@ SET display_name = CASE
     updated_at = now()
 WHERE id = sqlc.arg(id)
 RETURNING id, email, display_name, avatar_url, bio, ministry, role, created_at, updated_at;
+
+-- name: UpdateProfileAvatar :one
+UPDATE profiles
+SET avatar_url = $2,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, email, display_name, avatar_url, bio, ministry, role, created_at, updated_at;

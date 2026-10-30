@@ -15,6 +15,8 @@ type Config struct {
 	DatabaseURL    string
 	RedisURL       string
 	AuthJWTSecret  string
+	MediaPath      string
+	MediaBaseURL   string
 	DBMaxConns     int32
 	AllowedOrigins []string
 }
@@ -27,6 +29,8 @@ func Load() (Config, error) {
 		DatabaseURL:   strings.TrimSpace(os.Getenv("DATABASE_URL")),
 		RedisURL:      strings.TrimSpace(value("REDIS_URL", "redis://localhost:6379/0")),
 		AuthJWTSecret: strings.TrimSpace(os.Getenv("AUTH_JWT_SECRET")),
+		MediaPath:     value("MEDIA_PATH", "./data/media"),
+		MediaBaseURL:  strings.TrimRight(value("MEDIA_BASE_URL", "http://127.0.0.1:8080/media"), "/"),
 		AllowedOrigins: splitList(value(
 			"ALLOWED_ORIGINS",
 			"http://localhost:5173",
@@ -63,8 +67,19 @@ func Load() (Config, error) {
 	if len(cfg.AuthJWTSecret) < 32 {
 		return Config{}, fmt.Errorf("AUTH_JWT_SECRET must contain at least 32 characters")
 	}
+	if err := validateMediaBaseURL(cfg.MediaBaseURL); err != nil {
+		return Config{}, err
+	}
 
 	return cfg, nil
+}
+
+func validateMediaBaseURL(raw string) error {
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+		return fmt.Errorf("MEDIA_BASE_URL must be an HTTP or HTTPS URL without a query or fragment")
+	}
+	return nil
 }
 
 func validateRedisURL(raw string) error {
@@ -78,7 +93,7 @@ func validateRedisURL(raw string) error {
 func validateOrigins(origins []string) error {
 	for _, origin := range origins {
 		parsed, err := url.Parse(origin)
-		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" || parsed.User != nil || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
 			return fmt.Errorf("ALLOWED_ORIGINS must contain comma-separated HTTP or HTTPS origins")
 		}
 	}
