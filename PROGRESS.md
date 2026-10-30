@@ -6,7 +6,7 @@ Running record of what has been built. Newest entries first in the log. Keep the
 
 | Release | Status | Branch or tag | Notes |
 |---|---|---|---|
-| v1 Foundations and content | In progress | feat/profiles | Repo setup, auth spike, monorepo skeleton, API foundation, auth middleware and profiles done |
+| v1 Foundations and content | In progress | feat/profiles | Repo setup, auth spike, monorepo skeleton, API foundation, auth middleware, profiles and role administration in progress |
 | v2 Community and prayer | Not started | | |
 | v3 Chat and verse cards | Not started | | |
 | v4 Calls and live | Not started | | |
@@ -23,7 +23,7 @@ Mark with the date and the commit or tag when done.
 - [x] API foundation
 - [x] Auth middleware
 - [x] Profiles
-- [ ] Roles, admin seed, audit log
+- [ ] Roles, admin seed, audit log (role change, admin guard, seed command and audit migration implemented; admin user list remains)
 - [ ] Web shell and auth screens
 - [ ] Storage and uploads
 - [ ] Devotionals API and web
@@ -60,6 +60,7 @@ Format: date, branch, what changed, what to know.
 - 2026-10-30, feat/api-foundation: added environment configuration, JSON slog logging, chi routing and middleware, structured API errors, request IDs, health/readiness routes, PostgreSQL pool, graceful shutdown, Goose migration command and sqlc config/tool. Database readiness is checked on /ready; health stays independent of dependencies.
 - 2026-10-30, feat/api-auth-middleware: added local HS256 token verification, database-backed role context, automatic member profile creation, protected GET /v1/me, Redis fixed-window limits per IP and user, and readiness checks for Redis. Roles come from profiles, never token claims; API rate limiting fails closed if Redis is unavailable.
 - 2026-10-30, feat/profiles: added validated PATCH /v1/me, multipart avatar upload, an email/password signup and sign-in path that keeps the access token in memory, and profile onboarding through to Home. Profile email is read from csag's users table using read-only access to the ID and email columns. Empty bio or ministry clears the value. Avatar images are limited to JPEG/PNG, re-encoded to strip metadata, and saved with content-hash keys.
+- 2026-10-30, feat/profiles: added admin-only role changes, audit entries, a first-admin seed command, and a guard against demoting the last administrator. Full admin user management remains in progress.
 
 - 2026-10-29, feat/auth-spike: ran the csag token spike. All 13 questions in docs/AUTH.md answered in docs/AUTH_FINDINGS.md. Key results: HS256 with shared secret, no JWKS; claims are only sub/iat/exp (email and role are not in tokens); /v1/verify does not check session revocation, so local verification was chosen (DECISIONS.md 14); refresh rotation with family revocation on reuse works; logout needs session_id in the body (500 otherwise, bug noted); no cookies and no real email sender. Follow-up source inspection corrected the webhook assumption: audit events contain no email or one-time email token. Shared database with search_path=auth tested end to end and passed (DECISIONS.md 3 confirmed). Test user remains in the local csag database for further development. Throwaway schema-test database dropped.
 - 2026-10-29, docs/repo-setup: moved the static UI site (96 HTML pages, css/, js/, assets/, its README) into design/ with git mv as pure renames. Added .editorconfig, root .env.example with placeholder values for the API, and a new root README covering layout, docs map, branch rules and the secret check. .gitignore already existed and covers everything docs/GIT_WORKFLOW.md requires. Note: a local .env with real csag and OAuth values exists at the repo root, is untracked and correctly ignored.

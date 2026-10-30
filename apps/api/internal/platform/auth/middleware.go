@@ -65,3 +65,14 @@ func UserRole(ctx context.Context) (string, bool) {
 	value, ok := ctx.Value(principalKey{}).(principal)
 	return value.Role, ok
 }
+
+func RequireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		role, ok := UserRole(r.Context())
+		if !ok || role != "admin" {
+			httpx.WriteError(w, http.StatusForbidden, "forbidden", "Administrator access is required")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}

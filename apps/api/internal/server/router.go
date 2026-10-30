@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	adminapi "github.com/raymondproguy/gracespring/apps/api/internal/admin"
 	"github.com/raymondproguy/gracespring/apps/api/internal/identity"
 	"github.com/raymondproguy/gracespring/apps/api/internal/media"
 	"github.com/raymondproguy/gracespring/apps/api/internal/platform/auth"
@@ -29,6 +30,7 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 	router.Use(middleware.Timeout(30 * time.Second))
 
 	profiles := identity.NewStore(pool, logger, cfg.CSAGAuthSchema)
+	adminHandler := adminapi.NewHandler(adminapi.NewStore(pool, logger))
 
 	router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteData(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -63,6 +65,10 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 		protected.Get("/me", profiles.GetMe)
 		protected.Patch("/me", profiles.PatchMe)
 		protected.Put("/me/avatar", avatars.ServeHTTP)
+		protected.Route("/admin", func(admin chi.Router) {
+			admin.Use(auth.RequireAdmin)
+			admin.Put("/users/{userID}/role", adminHandler.ChangeUserRole)
+		})
 	})
 	api.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "The requested resource was not found")
