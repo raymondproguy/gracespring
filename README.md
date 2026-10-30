@@ -38,6 +38,8 @@ Requirements: Go 1.25+, Node.js 22.12+, and pnpm 12.9.1.
 
 ```sh
 pnpm install
+cp apps/api/.env.example apps/api/.env  # configure same database as csag
+make migrate-up
 make dev       # web app
 make api       # Go API at 127.0.0.1:8082 (local csag uses 8080)
 make build
@@ -48,4 +50,6 @@ make migrate-up      # applies forward migrations only
 make sqlc            # regenerates Go queries from apps/api/sqlc.yaml
 ```
 
-Set `DATABASE_URL`, `REDIS_URL`, and `AUTH_JWT_SECRET` in your shell before starting the API. The auth secret must match csag's `JWT_SECRET`. The API reads configuration only from environment variables. Vite reads `VITE_AUTH_BASE_URL` and `VITE_API_BASE_URL` from the root `.env`; `.env.example` has local defaults for csag on port 8080 and the API on port 8082. See `NEXT.md` for the ordered build queue.
+Copy `apps/api/.env.example` to `apps/api/.env` and set its database URL to the same PostgreSQL database used by csag, with the `app` schema and the `gracespring_app` role. The local csag install currently keeps its tables in `public`, so set `CSAG_AUTH_SCHEMA=public`; production uses `auth`. The API and csag database URLs must share the same host, port, and database name. Their database users and schemas remain separate. The API Make targets read `apps/api/.env`; the file is ignored by git. Grant the API role access only to its own schema and `id,email` on `public.users`, as described in `docs/DEPLOYMENT.md`.
+
+The API verifies tokens locally using the same `AUTH_JWT_SECRET` as csag's `JWT_SECRET`. Copy the value into the API's local env file. Vite reads `VITE_AUTH_BASE_URL` and `VITE_API_BASE_URL` from the root `.env`; `.env.example` has local defaults for csag on port 8080 and the API on port 8082. See `NEXT.md` for the ordered build queue.

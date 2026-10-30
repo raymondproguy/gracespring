@@ -4,7 +4,8 @@ The ordered work queue. Work from the top. Check items off as they are finished 
 
 ## In progress
 
-(none)
+- feat/shared-database: confirmed local csag and the API use the same PostgreSQL database. Existing csag tables stay in public; API tables use app. Production remains auth/app.
+- feat/web-shell: port the reference screens from design/ into React and match their layouts, spacing, imagery and responsive behavior.
 
 ## Up next (release v1)
 
