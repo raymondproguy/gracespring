@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -17,20 +18,22 @@ type Config struct {
 	AuthJWTSecret  string
 	MediaPath      string
 	MediaBaseURL   string
+	CSAGAuthSchema string
 	DBMaxConns     int32
 	AllowedOrigins []string
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		AppEnv:        value("APP_ENV", "development"),
-		HTTPAddr:      value("HTTP_ADDR", "127.0.0.1:8080"),
-		LogLevel:      value("LOG_LEVEL", "info"),
-		DatabaseURL:   strings.TrimSpace(os.Getenv("DATABASE_URL")),
-		RedisURL:      strings.TrimSpace(value("REDIS_URL", "redis://localhost:6379/0")),
-		AuthJWTSecret: strings.TrimSpace(os.Getenv("AUTH_JWT_SECRET")),
-		MediaPath:     value("MEDIA_PATH", "./data/media"),
-		MediaBaseURL:  strings.TrimRight(value("MEDIA_BASE_URL", "http://127.0.0.1:8080/media"), "/"),
+		AppEnv:         value("APP_ENV", "development"),
+		HTTPAddr:       value("HTTP_ADDR", "127.0.0.1:8080"),
+		LogLevel:       value("LOG_LEVEL", "info"),
+		DatabaseURL:    strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		RedisURL:       strings.TrimSpace(value("REDIS_URL", "redis://localhost:6379/0")),
+		AuthJWTSecret:  strings.TrimSpace(os.Getenv("AUTH_JWT_SECRET")),
+		MediaPath:      value("MEDIA_PATH", "./data/media"),
+		MediaBaseURL:   strings.TrimRight(value("MEDIA_BASE_URL", "http://127.0.0.1:8080/media"), "/"),
+		CSAGAuthSchema: value("CSAG_AUTH_SCHEMA", "auth"),
 		AllowedOrigins: splitList(value(
 			"ALLOWED_ORIGINS",
 			"http://localhost:5173",
@@ -58,6 +61,9 @@ func Load() (Config, error) {
 	if err := validateDatabaseURL(cfg.DatabaseURL); err != nil {
 		return Config{}, err
 	}
+	if !validSchemaName(cfg.CSAGAuthSchema) {
+		return Config{}, fmt.Errorf("CSAG_AUTH_SCHEMA must be a valid unquoted PostgreSQL schema name")
+	}
 	if err := validateOrigins(cfg.AllowedOrigins); err != nil {
 		return Config{}, err
 	}
@@ -72,6 +78,12 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+var schemaNamePattern = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
+
+func validSchemaName(schema string) bool {
+	return schemaNamePattern.MatchString(schema)
 }
 
 func validateMediaBaseURL(raw string) error {

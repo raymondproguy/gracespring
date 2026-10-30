@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"mime"
@@ -22,12 +23,31 @@ import (
 )
 
 type Store struct {
-	queries *dbgen.Queries
-	logger  *slog.Logger
+	pool            *pgxpool.Pool
+	queries         *dbgen.Queries
+	logger          *slog.Logger
+	getEmailQuery   string
+	checkEmailQuery string
 }
 
-func NewStore(pool *pgxpool.Pool, logger *slog.Logger) *Store {
-	return &Store{queries: dbgen.New(pool), logger: logger}
+func NewStore(pool *pgxpool.Pool, logger *slog.Logger, csagAuthSchema string) *Store {
+	schema := pgx.Identifier{csagAuthSchema}.Sanitize()
+	return &Store{
+		pool:            pool,
+		queries:         dbgen.New(pool),
+		logger:          logger,
+		getEmailQuery:   fmt.Sprintf("SELECT email FROM %s.users WHERE id = $1", schema),
+		checkEmailQuery: fmt.Sprintf("SELECT id, email FROM %s.users LIMIT 0", schema),
+	}
+}
+
+func (s *Store) CheckEmailSource(ctx context.Context) error {
+	rows, err := s.pool.Query(ctx, s.checkEmailQuery)
+	if err != nil {
+		return err
+	}
+	rows.Close()
+	return rows.Err()
 }
 
 func (s *Store) GetOrCreateRole(ctx context.Context, userID uuid.UUID) (string, error) {
@@ -68,7 +88,13 @@ func (s *Store) GetMe(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, http.StatusServiceUnavailable, "profile_unavailable", "Unable to load your profile")
 		return
 	}
-	httpx.WriteData(w, http.StatusOK, toProfileResponse(profile))
+	response, err := s.profileResponse(r.Context(), profile)
+	if err != nil {
+		s.logger.Error("load csag email for authenticated profile", "request_id", middleware.GetReqID(r.Context()), "error", err)
+		httpx.WriteError(w, http.StatusServiceUnavailable, "profile_unavailable", "Unable to load your profile")
+		return
+	}
+	httpx.WriteData(w, http.StatusOK, response)
 }
 
 type patchProfileRequest struct {
@@ -132,7 +158,13 @@ func (s *Store) PatchMe(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, http.StatusServiceUnavailable, "profile_unavailable", "Unable to update your profile")
 		return
 	}
-	httpx.WriteData(w, http.StatusOK, toProfileResponse(profile))
+	response, err := s.profileResponse(r.Context(), profile)
+	if err != nil {
+		s.logger.Error("load csag email after profile update", "request_id", middleware.GetReqID(r.Context()), "error", err)
+		httpx.WriteError(w, http.StatusServiceUnavailable, "profile_unavailable", "Unable to load your profile")
+		return
+	}
+	httpx.WriteData(w, http.StatusOK, response)
 }
 
 func (s *Store) SetAvatar(ctx context.Context, userID uuid.UUID, avatarURL string) (Profile, error) {
@@ -143,7 +175,7 @@ func (s *Store) SetAvatar(ctx context.Context, userID uuid.UUID, avatarURL strin
 	if err != nil {
 		return Profile{}, err
 	}
-	return toProfileResponse(profile), nil
+	return s.profileResponse(ctx, profile)
 }
 
 func (s *Store) GetAvatar(ctx context.Context, userID uuid.UUID) (string, error) {
@@ -178,10 +210,18 @@ func validateField(fields map[string]string, name string, value *string, maxRune
 	}
 }
 
-func toProfileResponse(profile dbgen.Profile) Profile {
+func (s *Store) profileResponse(ctx context.Context, profile dbgen.Profile) (Profile, error) {
+	var email string
+	if err := s.pool.QueryRow(ctx, s.getEmailQuery, profile.ID).Scan(&email); err != nil {
+		return Profile{}, err
+	}
+	return toProfileResponse(profile, &email), nil
+}
+
+func toProfileResponse(profile dbgen.Profile, email *string) Profile {
 	return Profile{
 		ID:          profile.ID,
-		Email:       profile.Email,
+		Email:       email,
 		DisplayName: profile.DisplayName,
 		AvatarURL:   profile.AvatarUrl,
 		Bio:         profile.Bio,

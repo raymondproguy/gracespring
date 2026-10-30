@@ -15,7 +15,7 @@ Branch names are suggestions.
 3. [x] feat/monorepo-skeleton: pnpm workspace, Go module in apps/api, Vite app in apps/web, packages/shared, openapi/openapi.yaml with /health only, Makefile or task runner, CI workflow for lint and tests.
 4. [x] feat/api-foundation: config loading from environment, structured logging, chi router, health and readiness endpoints, error format, request IDs, graceful shutdown, Postgres connection, goose migrations, sqlc setup.
 5. [x] feat/api-auth-middleware: verify csag tokens locally (per spike result), load profile and role into request context, rate limit middleware (Redis).
-6. [ ] feat/profiles: finish onboarding; email/password signup and sign-in now keep the access token in memory and connect new accounts to the profile form and Home. Keep email nullable until a trusted csag integration is chosen.
+6. [x] feat/profiles: finish onboarding; email/password signup and sign-in connect new accounts to the profile form and Home. Profile email comes from csag's users table with column-level read-only access (Decision 17).
 7. [ ] feat/roles-admin-seed: roles (member, leader, admin), one time first admin seed command, promote and demote endpoints, audit log table and writer.
 8. [ ] feat/web-shell: port design tokens and base CSS, app layout (sidebar on desktop, tab bar on mobile), routing, theme toggle, auth screens wired to csag (signin, signup, onboarding), protected routes.
 9. [ ] feat/storage: storage interface, local disk driver, presigned or token based upload endpoint, image variants worker, file validation.

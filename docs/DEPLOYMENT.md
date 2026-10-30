@@ -29,13 +29,14 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 ## Environment files (names only, values never in git)
 
-- /etc/gracespring/api.env: HTTP_ADDR (127.0.0.1:8080), DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
+- /etc/gracespring/api.env: HTTP_ADDR (127.0.0.1:8080), DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), CSAG_AUTH_SCHEMA=auth, STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
 - /etc/gracespring/csag.env as above (template in deploy/csag.env.example). The API and csag may point at the same DATABASE_URL host but use different users and schemas, and different Redis database numbers.
 - The repo contains only .env.example files with placeholders.
 
 ## Database
 
 - One database with two schemas: auth for csag and app for GraceSpring. Each has its own database user with rights only on its own schema. The csag connection string sets search_path to auth, the app sets it to app. If the schema test in docs/AUTH.md fails, use two databases on the same server instead.
+- The API also reads only `auth.users.id` and `auth.users.email` to return the authoritative email in profiles. After creating the database roles, grant the API role `USAGE` on schema `auth` and column-level `SELECT (id, email)` on `auth.users`; do not grant table-wide access. For a local csag database using `public`, set `CSAG_AUTH_SCHEMA=public` and apply the same grants to `public.users`.
 - Migrations run with `gracespring-migrate up` (built from `apps/api/cmd/migrate`) before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed. The command supports `up` and `status` only, so production migrations stay forward-only.
 - Postgres tuned for the machine size, connection pool in the API sized to match.
 

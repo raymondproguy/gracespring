@@ -28,6 +28,8 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 	router.Use(httpx.CORS(cfg.AllowedOrigins))
 	router.Use(middleware.Timeout(30 * time.Second))
 
+	profiles := identity.NewStore(pool, logger, cfg.CSAGAuthSchema)
+
 	router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		httpx.WriteData(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
@@ -42,13 +44,16 @@ func New(cfg config.Config, logger *slog.Logger, pool *pgxpool.Pool, redisClient
 			httpx.WriteError(w, http.StatusServiceUnavailable, "dependency_unavailable", "Service is not ready")
 			return
 		}
+		if err := profiles.CheckEmailSource(ctx); err != nil {
+			httpx.WriteError(w, http.StatusServiceUnavailable, "dependency_unavailable", "Service is not ready")
+			return
+		}
 		httpx.WriteData(w, http.StatusOK, map[string]string{"status": "ready"})
 	})
 	if cfg.AppEnv != "production" {
 		router.Handle("/media/*", media.LocalMediaHandler(cfg.MediaPath))
 	}
 
-	profiles := identity.NewStore(pool, logger)
 	avatars := media.NewAvatarHandler(profiles, mediaStore, cfg.MediaBaseURL, logger)
 	api := chi.NewRouter()
 	api.Use(ratelimit.IPMiddleware(redisClient, logger))

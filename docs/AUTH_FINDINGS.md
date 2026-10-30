@@ -29,7 +29,7 @@ No email, no session id, no role claim for ordinary users. Two exceptions, both 
 - An operator (csag console admin) gets "role": "admin" baked in at issue time.
 - Per-user metadata keys (the operators table writes them) become extra claims on the next login or refresh.
 
-Consequence: the GraceSpring API cannot read the email or role from the token. It loads roles from its own profile row keyed by the sub claim. The email also is not in the token, and the installed csag user table is the authoritative place that stores it. How the API reads that email is unresolved; see the follow-up below and Decision 16.
+Consequence: the GraceSpring API cannot read the email or role from the token. It loads roles from its own profile row keyed by the sub claim. The email also is not in the token, and the installed csag user table is the authoritative place that stores it. Decision 17: the API reads only `id` and `email` from the configured csag schema, with column-level read-only privileges.
 
 ## 3. Token lifetimes, rotation, reuse detection
 
@@ -100,7 +100,7 @@ From source. csag ships only console senders: consoleEmailSender and consoleMagi
 
 In the installed build, magic-link login and email change call the console email senders. Signup does not send a verification email: it creates the user and returns `user_id` and `email`; the auth schema has no `email_verified` column.
 
-Follow-up source inspection on 2026-10-30 corrected the earlier webhook assumption. The installed binary is built from `github.com/crydensync/csag` v1.11.0 with `github.com/crydensync/cryden/v2` v2.5.0. Its `WEBHOOK_URL` sends signed audit events. The JSON envelope contains `id`, `type`, `user_id`, `ip`, `occurred_at`, and optional `metadata`. The `signup_success` and `email_change_requested` events do not carry an email or a one-time token. `X-Cryden-Signature` is HMAC-SHA256 over the raw body, formatted as `sha256=` plus lowercase hexadecimal, but signature verification does not make missing email/token data available. The webhook therefore cannot deliver signup verification or magic-link messages. Real mail needs a supported csag sender integration or a deliberate change to csag; SMTP provider remains open. The API profile email source also remains unresolved, so new profiles allow a null email.
+Follow-up source inspection on 2026-10-30 corrected the earlier webhook assumption. The installed binary is built from `github.com/crydensync/csag` v1.11.0 with `github.com/crydensync/cryden/v2` v2.5.0. Its `WEBHOOK_URL` sends signed audit events. The JSON envelope contains `id`, `type`, `user_id`, `ip`, `occurred_at`, and optional `metadata`. The `signup_success` and `email_change_requested` events do not carry an email or a one-time token. `X-Cryden-Signature` is HMAC-SHA256 over the raw body, formatted as `sha256=` plus lowercase hexadecimal, but signature verification does not make missing email/token data available. The webhook therefore cannot deliver signup verification or magic-link messages. Decision 17 uses the csag users table for profile email, with read-only access to `id` and `email`. Real mail still needs a supported csag sender integration or a deliberate change to csag; SMTP provider remains open.
 
 ## 11. (covered above)
 
