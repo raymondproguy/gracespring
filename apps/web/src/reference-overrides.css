@@ -1,0 +1,16 @@
+main.main {
+  display: block;
+  align-content: initial;
+  justify-items: initial;
+  padding-top: 0;
+  padding-right: 0;
+  padding-left: 0;
+  text-align: left;
+}
+
+.profile-onboarding,
+.auth-screen,
+.welcome-screen {
+  color: var(--ink);
+  background: var(--bg);
+}

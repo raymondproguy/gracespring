@@ -24,7 +24,7 @@ Mark with the date and the commit or tag when done.
 - [x] Auth middleware
 - [x] Profiles
 - [x] Roles, admin seed, audit log
-- [ ] Web shell and auth screens (responsive navigation, profile editing, Settings, theme and session lifecycle implemented; content routes remain)
+- [ ] Web shell and auth screens (responsive navigation, profile editing, Settings, theme and session lifecycle implemented; Home now uses the reference layout and assets; auth/onboarding and other content routes remain)
 - [ ] Storage and uploads
 - [ ] Devotionals API and web
 - [ ] Devotional engagement
@@ -63,6 +63,7 @@ Format: date, branch, what changed, what to know.
 - 2026-10-30, feat/roles-admin-seed: added admin-only role changes, audit entries, a first-admin seed command, and a guard against demoting the last administrator. Admin UI will be built with the web shell.
 - 2026-10-30, feat/web-shell: added responsive authenticated navigation with desktop sidebar and mobile tabs, role-aware Church admin link, saved dark-mode preference, protected routes, profile loading, home greeting and empty states. Added profile editing, csag session listing and revocation, rotating refresh-token renewal, and sign out everywhere. Content sections remain placeholders until their APIs are available.
 - 2026-10-30, feat/shared-database: configured the local API with a separate least-privilege role and app schema in csag's existing PostgreSQL database. csag remains in public locally. The API can read only public.users.id and public.users.email. Applied the profile and admin-audit migrations; production remains auth/app.
+- 2026-10-30, feat/design-port: ported the signed-in Home screen to the `design/home.html` layout, responsive shell classes and image assets. Copied the reference stylesheet and images into the web app without changing `design/`. Home content is currently representative sample content; auth, onboarding and remaining content screens still need porting. Web typecheck, lint and production build pass.
 
 - 2026-10-29, feat/auth-spike: ran the csag token spike. All 13 questions in docs/AUTH.md answered in docs/AUTH_FINDINGS.md. Key results: HS256 with shared secret, no JWKS; claims are only sub/iat/exp (email and role are not in tokens); /v1/verify does not check session revocation, so local verification was chosen (DECISIONS.md 14); refresh rotation with family revocation on reuse works; logout needs session_id in the body (500 otherwise, bug noted); no cookies and no real email sender. Follow-up source inspection corrected the webhook assumption: audit events contain no email or one-time email token. Shared database with search_path=auth tested end to end and passed (DECISIONS.md 3 confirmed). Test user remains in the local csag database for further development. Throwaway schema-test database dropped.
 - 2026-10-29, docs/repo-setup: moved the static UI site (96 HTML pages, css/, js/, assets/, its README) into design/ with git mv as pure renames. Added .editorconfig, root .env.example with placeholder values for the API, and a new root README covering layout, docs map, branch rules and the secret check. .gitignore already existed and covers everything docs/GIT_WORKFLOW.md requires. Note: a local .env with real csag and OAuth values exists at the repo root, is untracked and correctly ignored.

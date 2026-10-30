@@ -85,7 +85,7 @@ function screenFromPath(path: string): Screen {
   return "app";
 }
 
-function Icon({ name }: { name: string }) {
+function Icon({ name, className = "shell-icon" }: { name: string; className?: string }) {
   const paths: Record<string, ReactNode> = {
     home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9M9 21v-7h6v7"/></>,
     audio: <><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></>,
@@ -103,34 +103,68 @@ function Icon({ name }: { name: string }) {
     moon: <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/>,
     sunTheme: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.1-7.1-1.4 1.4M6.3 17.7l-1.4 1.4m14.2 0-1.4-1.4M6.3 6.3 4.9 4.9"/></>,
     logout: <><path d="M10 17l5-5-5-5m5 5H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></>,
+    add: <><path d="M12 5v14M5 12h14"/></>,
+    photo: <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></>,
+    microphone: <><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/></>,
+    more: <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
+    share: <><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4m0-11-6.8 4"/></>,
+    play: <path d="m7 4 14 8-14 8z"/>,
+    chevron: <path d="m9 18 6-6-6-6"/>,
+    verse: <><path d="m14.5 21.7 6.5-19a.5.5 0 0 0-.6-.6l-19 6.5a.5.5 0 0 0 0 .9l7.9 3.2a2 2 0 0 1 1.1 1.1l3.2 7.9a.5.5 0 0 0 .9 0Z"/><path d="m21 3-11 11"/></>,
   };
-  return <svg aria-hidden="true" className="shell-icon" viewBox="0 0 24 24">{paths[name] ?? paths.sparkle}</svg>;
+  return <svg aria-hidden="true" className={className} viewBox="0 0 24 24">{paths[name] ?? paths.sparkle}</svg>;
 }
 
-function Greeting({ name }: { name: string }) {
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  return <><h1 className="home-greeting">{greeting}, {name}</h1><p className="home-subtitle">Here’s what’s happening at GraceSpring.</p></>;
-}
-
-function HomeContent({ profile, loading, error, onRetry, onNavigate }: {
+function HomeContent({ profile, loading, error, onRetry, onNavigate, onNotifications }: {
   profile: Profile | null;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
   onNavigate: (path: string) => void;
+  onNotifications: () => void;
 }) {
   if (loading) return <div className="home-loading" aria-busy="true"><div className="home-loading__hero"/><div className="home-loading__row"/><div className="home-loading__row"/><p role="status">Loading your home…</p></div>;
   if (error) return <section className="home-empty home-error" role="alert"><h2>We couldn’t load your home</h2><p>{error}</p><button className="shell-button shell-button--primary" onClick={onRetry} type="button">Try again</button></section>;
+  const go = (path: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    onNavigate(path);
+  };
+  const firstName = profile?.display_name?.trim().split(/\s+/)[0] || "friend";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   return <>
-    <section className="home-welcome"><p className="eyebrow">GraceSpring Family Church</p><Greeting name={profile?.display_name || "friend"}/></section>
-    <section className="home-feature"><div className="home-feature__art" aria-hidden="true"><span>GS</span><i/><i/><i/></div><div className="home-feature__copy"><p className="home-feature__eyebrow">A place to grow together</p><h2>Faith grows when we walk together.</h2><p>Find a moment to worship, learn, and connect with your church family.</p><button className="shell-button shell-button--light" onClick={() => onNavigate("/devotional")} type="button">Explore devotionals <span aria-hidden="true">→</span></button></div></section>
-    <nav className="home-shortcuts" aria-label="Quick links">
-      {[primaryNavigation[1], primaryNavigation[4], primaryNavigation[2], primaryNavigation[8]].map((item) => <button className="shortcut" key={item.label} onClick={() => onNavigate(item.path)} type="button"><span className="shortcut__icon"><Icon name={item.icon}/></span><span>{item.label === "Audio" ? "Sermons" : item.label}</span></button>)}
-    </nav>
-    <section className="home-section"><div className="home-section__heading"><h2>Continue listening</h2><button onClick={() => onNavigate("/audio")} type="button">All sermons</button></div><div className="home-empty"><span className="home-empty__icon"><Icon name="audio"/></span><p>Your recently played sermons will appear here.</p><button className="text-button" onClick={() => onNavigate("/audio")} type="button">Browse audio</button></div></section>
-    <section className="home-section"><div className="home-section__heading"><h2>Today’s devotional</h2><button onClick={() => onNavigate("/devotional")} type="button">All devotionals</button></div><div className="home-empty"><span className="home-empty__icon"><Icon name="sun"/></span><p>Devotionals will appear here when they’re ready.</p><button className="text-button" onClick={() => onNavigate("/devotional")} type="button">Explore devotionals</button></div></section>
-    <section className="home-section"><div className="home-section__heading"><h2>From the community</h2><button onClick={() => onNavigate("/community")} type="button">Visit community</button></div><div className="home-empty"><span className="home-empty__icon"><Icon name="people"/></span><p>Your church community is getting ready.</p><button className="text-button" onClick={() => onNavigate("/community")} type="button">Explore community</button></div></section>
+    <header className="appbar">
+      <a className="brand brand-mobile" href="/" onClick={go("/")}><img src="/assets/img/mark.png" alt=""/><span><b>GraceSpring</b></span></a>
+      <span className="spacer"/>
+      <a className="icon-btn" href="/search" onClick={go("/search")} aria-label="Search"><Icon name="search" className="i"/></a>
+      <a className="icon-btn" href="/events" onClick={go("/events")} aria-label="Events"><Icon name="calendar" className="i"/></a>
+      <button className="icon-btn" type="button" onClick={onNotifications} aria-label="Notifications"><Icon name="bell" className="i"/><span className="dot"/></button>
+      <a className="icon-btn" href="/profile" onClick={go("/profile")} aria-label="Your profile">{profile?.avatar_url ? <img className="av av-sm" src={profile.avatar_url} alt=""/> : <span className="av av-sm">{firstName.slice(0,1).toUpperCase()}</span>}</a>
+    </header>
+    <div className="col">
+      <section className="greet"><h1>{greeting}, {firstName}</h1><p>Here's what's happening at GraceSpring.</p></section>
+      <a className="feature" href="/events" onClick={go("/events")}>
+        <img src="/assets/img/worship.jpg" alt=""/>
+        <div className="in"><p className="when-label">Next gathering, Nov 1 at 9:00 AM</p><h2>Sunday Service</h2><p className="where">Main Auditorium</p><span className="go">View details <Icon name="chevron" className="i i-sm"/></span></div>
+      </a>
+      <nav className="quick" aria-label="Shortcuts">
+        {[{label:"Sermons",path:"/audio",icon:"audio"},{label:"Prayer",path:"/prayer",icon:"heart"},{label:"Devotional",path:"/devotional",icon:"sun"},{label:"Ministries",path:"/ministries",icon:"people"}].map((item)=><a href={item.path} key={item.label} onClick={go(item.path)}><span className="ico"><Icon name={item.icon} className="i"/></span>{item.label}</a>)}
+      </nav>
+      <section className="section" aria-labelledby="resume-heading"><div className="section-head"><h2 id="resume-heading">Continue listening</h2><a href="/audio" onClick={go("/audio")}>All sermons</a></div><div className="resume"><a href="/audio" onClick={go("/audio")}><img className="thumb" src="/assets/img/avatars/james.jpg" alt=""/></a><a className="item-body" href="/audio" onClick={go("/audio")}><span className="item-title">Faith in the Waiting</span><span className="item-sub">Pastor James, 28 min left</span><span className="meter"><i/></span></a><a className="play-btn" href="/audio" onClick={go("/audio")} aria-label="Resume playing"><Icon name="play" className="i i-fill"/></a></div></section>
+      <section className="section" aria-labelledby="today-heading"><div className="section-head"><h2 id="today-heading">Today's devotional</h2><a href="/devotional" onClick={go("/devotional")}>All devotionals</a></div><a className="today" href="/devotional" onClick={go("/devotional")}><img src="/assets/img/journal.jpg" alt=""/><span className="item-body"><span className="item-sub">Supernatural Health, Episode 2</span><span className="today-title">Faith is your evidence</span><span className="item-sub clamp-2">Your body is real. But sickness is not the only reality you should be conscious of.</span></span></a></section>
+      <section className="section"><ul className="list"><li><a className="item" href="/cards/new" onClick={go("/cards/new")}><span className="ico"><Icon name="verse" className="i"/></span><span className="item-body"><span className="item-title">Send a verse</span><span className="item-sub">Encourage someone with a Scripture card.</span></span><Icon name="chevron" className="i muted"/></a></li></ul></section>
+      <section className="section" aria-labelledby="feed-heading"><div className="section-head"><h2 id="feed-heading">From the community</h2></div>
+        <div className="composer"><span className="av">{firstName.slice(0,1).toUpperCase()}</span><a className="fake" href="/community/new" onClick={go("/community/new")}>What's on your heart today?</a><a className="icon-btn" href="/community/new" onClick={go("/community/new")} aria-label="Add a photo"><Icon name="photo" className="i"/></a><a className="icon-btn" href="/community/new" onClick={go("/community/new")} aria-label="Add a voice note"><Icon name="microphone" className="i"/></a></div>
+        <article className="post"><div className="post-head"><img className="av" src="/assets/img/avatars/sarah.jpg" alt=""/><div className="who"><b>Sarah Okafor</b><small>2h ago, Youth Ministry</small></div><button className="icon-btn" type="button" aria-label="More options"><Icon name="more" className="i"/></button></div><p className="post-body">God is faithful! Grateful for His unfailing love and the opportunity to serve in this church. <span className="tag">#Grateful</span> <span className="tag">#GodIsGood</span></p><div className="post-photos"><img src="/assets/img/worship.jpg" alt="Worship at GraceSpring"/><img src="/assets/img/congregation.jpg" alt="GraceSpring congregation"/></div><div className="post-actions"><button className="act" type="button" aria-label="Like"><Icon name="heart" className="i"/><span>124</span></button><button className="act" type="button" aria-label="Comments"><Icon name="message" className="i"/><span>8</span></button><button className="act end" type="button" aria-label="Share"><Icon name="share" className="i"/></button></div></article>
+        <article className="post"><div className="post-head"><span className="av" aria-hidden="true">DE</span><div className="who"><b>Daniel Eze</b><small>4h ago, Media Ministry</small></div><button className="icon-btn" type="button" aria-label="More options"><Icon name="more" className="i"/></button></div><p className="post-body">Great worship today! The presence of God was so real. Still carrying that song into the week.</p><div className="post-actions"><button className="act" type="button" aria-label="Like"><Icon name="heart" className="i"/><span>86</span></button><button className="act" type="button" aria-label="Comments"><Icon name="message" className="i"/><span>5</span></button><button className="act end" type="button" aria-label="Share"><Icon name="share" className="i"/></button></div></article>
+      </section>
+      <button className="fab" type="button" aria-label="Create a post" onClick={() => onNavigate("/community/new")}><Icon name="add" className="i"/></button>
+    </div>
+    <aside className="rail" aria-label="Highlights">
+      <section><div className="section-head"><h3>Upcoming events</h3><a href="/events" onClick={go("/events")}>See all</a></div><ul className="list">{[{month:"Nov",day:"1",name:"Sunday Service",meta:"Main Auditorium, 9:00 AM"},{month:"Nov",day:"5",name:"Bible Study",meta:"Youth Hall, 6:00 PM"},{month:"Nov",day:"8",name:"Church Anniversary",meta:"Main Auditorium, 10:00 AM"},{month:"Nov",day:"15",name:"Prayer Night",meta:"Prayer Room, 7:00 PM"}].map((event)=><li key={event.name}><a className="item" href="/events" onClick={go("/events")}><span className="date-col"><small>{event.month}</small><b>{event.day}</b></span><span className="item-body"><span className="item-title">{event.name}</span><span className="item-sub">{event.meta}</span></span></a></li>)}</ul></section>
+      <section><div className="section-head"><h3>People to follow</h3></div><ul className="list">{[{initials:"EU",name:"Esther Udo",ministry:"Youth Ministry"},{initials:"ED",name:"Emmanuel David",ministry:"Media Ministry"},{initials:"RA",name:"Ruth Adeyemi",ministry:"Choir Ministry"}].map((person)=><li className="item" key={person.name}><span className="av av-sm">{person.initials}</span><span className="item-body"><span className="item-title">{person.name}</span><span className="item-sub">{person.ministry}</span></span><button className="btn btn-sm btn-outline" type="button">Follow</button></li>)}</ul></section>
+    </aside>
   </>;
 }
 
@@ -146,6 +180,7 @@ export function App() {
   const [refreshToken, setRefreshToken] = useState<string | null>(storedRefreshToken);
   const [authLoading, setAuthLoading] = useState(() => Boolean(storedRefreshToken()));
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileAttempt, setProfileAttempt] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -284,39 +319,32 @@ export function App() {
     const visibleNavigation = profile?.role === "admin"
       ? [...utilityNavigation, { label: "Church admin", path: "/admin", icon: "settings" }]
       : utilityNavigation;
-    return <div className="app-shell">
-      <aside className="app-sidebar" aria-label="Main navigation">
-        <a className="shell-brand" href="/" onClick={(event) => handleNavigation(event, "/")}><span className="shell-brand__mark">G</span><span><strong>GraceSpring</strong><small>Family Church</small></span></a>
-        <nav className="sidebar-navigation" aria-label="Primary">
-          {primaryNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon}/><span>{item.label}</span></a>)}
-          <div className="sidebar-navigation__divider"/>
-          {visibleNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon}/><span>{item.label}</span></a>)}
+    return <div className="shell">
+      <aside className="sidebar" aria-label="Main navigation">
+        <a className="brand" href="/" onClick={(event) => handleNavigation(event, "/")}><img src="/assets/img/mark.png" alt=""/><span><b>GraceSpring</b><small>Family Church</small></span></a>
+        <nav className="side-nav" aria-label="Primary">
+          {primaryNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon} className="i"/><span>{item.label}</span></a>)}
+          <hr/>
+          {visibleNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon} className="i"/><span>{item.label}</span></a>)}
         </nav>
-        <button className="shell-signout" onClick={() => void signOutEverywhere()} type="button"><Icon name="logout"/>Sign out everywhere</button>
+        <div className="side-cta"><a className="btn btn-block" href="/community/new" onClick={(event) => handleNavigation(event, "/community/new")}><Icon name="add" className="i i-sm"/>New post</a></div>
       </aside>
-      <main className="app-main" id="main-content">
-        <header className="app-header">
-          <a className="shell-brand shell-brand--mobile" href="/" onClick={(event) => handleNavigation(event, "/")}><span className="shell-brand__mark">G</span><strong>GraceSpring</strong></a>
-          <div className="app-header__actions">
-            <a className="shell-icon-button" href="/search" aria-label="Search" onClick={(event) => handleNavigation(event, "/search")}><Icon name="search"/></a>
-            <a className="shell-icon-button" href="/events" aria-label="Events" onClick={(event) => handleNavigation(event, "/events")}><Icon name="calendar"/></a>
-            <a className="shell-icon-button" href="/notifications" aria-label="Notifications" onClick={(event) => handleNavigation(event, "/notifications")}><Icon name="bell"/></a>
-            <button className="shell-icon-button" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`} onClick={() => setTheme(theme === "light" ? "dark" : "light")} type="button"><Icon name={theme === "light" ? "moon" : "sunTheme"}/></button>
-            <a className="member-avatar" href="/profile" aria-label="Your profile" onClick={(event) => handleNavigation(event, "/profile")}>{profile?.avatar_url ? <img src={profile.avatar_url} alt=""/> : (profile?.display_name?.[0] ?? "G").toUpperCase()}</a>
-          </div>
-        </header>
-        <div className="app-page">
+      <main className="main" id="main">
+        <div className={isHome ? "page has-rail" : "page"}>
           {isHome
-            ? <HomeContent profile={profile} loading={!profile && !profileError} error={profileError} onRetry={() => { setProfileError(null); setProfileAttempt((attempt) => attempt + 1); }} onNavigate={navigate}/>
-            : path === "/settings"
-              ? <SettingsPage accessToken={accessToken} authBaseUrl={authBaseUrl} email={profile?.email ?? null} theme={theme} onThemeChange={() => setTheme(theme === "light" ? "dark" : "light")} onSignOut={signOutEverywhere}/>
-              : <PlaceholderPage path={path} onNavigate={navigate}/>}
-          <footer className="app-footer">{APP_NAME}</footer>
+            ? <HomeContent profile={profile} loading={!profile && !profileError} error={profileError} onRetry={() => { setProfileError(null); setProfileAttempt((attempt) => attempt + 1); }} onNavigate={navigate} onNotifications={() => setNotificationsOpen(true)}/>
+            : <>
+              <header className="appbar"><a className="brand brand-mobile" href="/" onClick={(event) => handleNavigation(event, "/")}><img src="/assets/img/mark.png" alt=""/><span><b>GraceSpring</b></span></a><span className="spacer"/><a className="icon-btn" href="/search" onClick={(event) => handleNavigation(event, "/search")} aria-label="Search"><Icon name="search" className="i"/></a><a className="icon-btn" href="/events" onClick={(event) => handleNavigation(event, "/events")} aria-label="Events"><Icon name="calendar" className="i"/></a><button className="icon-btn" type="button" onClick={() => setNotificationsOpen(true)} aria-label="Notifications"><Icon name="bell" className="i"/></button><a className="icon-btn" href="/profile" onClick={(event) => handleNavigation(event, "/profile")} aria-label="Your profile">{profile?.avatar_url ? <img className="av av-sm" src={profile.avatar_url} alt=""/> : <span className="av av-sm">{profile?.display_name?.slice(0,1).toUpperCase() ?? "G"}</span>}</a></header>
+              <div className="col">{path === "/settings" ? <SettingsPage accessToken={accessToken} authBaseUrl={authBaseUrl} email={profile?.email ?? null} theme={theme} onThemeChange={() => setTheme(theme === "light" ? "dark" : "light")} onSignOut={signOutEverywhere}/> : <PlaceholderPage path={path} onNavigate={navigate}/>}</div>
+            </>}
         </div>
       </main>
-      <nav className="mobile-tabbar" aria-label="Main navigation">
-        {mobileNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon}/><span>{item.label === "Messages" ? "Chats" : item.label}</span></a>)}
+      <nav className="tabbar" aria-label="Main navigation">
+        {mobileNavigation.map((item) => <a aria-current={path === item.path ? "page" : undefined} href={item.path} key={item.path} onClick={(event) => handleNavigation(event, item.path)}><Icon name={item.icon} className="i"/><span>{item.label === "Messages" ? "Chats" : item.label}</span></a>)}
       </nav>
+      <div className={`backdrop${notificationsOpen ? " is-open" : ""}`} aria-hidden={!notificationsOpen} role="dialog" aria-modal="true" aria-label="Notifications" onClick={(event) => { if (event.target === event.currentTarget) setNotificationsOpen(false); }}>
+        <div className="sheet"><h2>Notifications</h2><p>Your church updates will appear here.</p><div className="btn-row"><button className="btn btn-outline" type="button" onClick={() => setNotificationsOpen(false)}>Close</button></div></div>
+      </div>
     </div>;
   }
 
