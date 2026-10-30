@@ -1,11 +1,17 @@
 main.main {
   display: block;
+  min-height: 0;
   align-content: initial;
   justify-items: initial;
-  padding-top: 0;
-  padding-right: 0;
-  padding-left: 0;
+  padding: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px);
   text-align: left;
+}
+
+.home-profile-error { margin-top: 8px; color: var(--danger) !important; font-size: 13px; }
+.home-profile-error button { color: var(--link); font-weight: 700; text-decoration: underline; }
+
+@media (min-width: 960px) {
+  main.main { padding-bottom: 56px; }
 }
 
 .profile-onboarding,

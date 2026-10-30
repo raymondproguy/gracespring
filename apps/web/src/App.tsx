@@ -123,8 +123,6 @@ function HomeContent({ profile, loading, error, onRetry, onNavigate, onNotificat
   onNavigate: (path: string) => void;
   onNotifications: () => void;
 }) {
-  if (loading) return <div className="home-loading" aria-busy="true"><div className="home-loading__hero"/><div className="home-loading__row"/><div className="home-loading__row"/><p role="status">Loading your home…</p></div>;
-  if (error) return <section className="home-empty home-error" role="alert"><h2>We couldn’t load your home</h2><p>{error}</p><button className="shell-button shell-button--primary" onClick={onRetry} type="button">Try again</button></section>;
   const go = (path: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -143,7 +141,7 @@ function HomeContent({ profile, loading, error, onRetry, onNavigate, onNotificat
       <a className="icon-btn" href="/profile" onClick={go("/profile")} aria-label="Your profile">{profile?.avatar_url ? <img className="av av-sm" src={profile.avatar_url} alt=""/> : <span className="av av-sm">{firstName.slice(0,1).toUpperCase()}</span>}</a>
     </header>
     <div className="col">
-      <section className="greet"><h1>{greeting}, {firstName}</h1><p>Here's what's happening at GraceSpring.</p></section>
+      <section className="greet"><h1>{greeting}, {firstName}</h1><p>Here's what's happening at GraceSpring.</p>{loading && <span className="sr-only" role="status">Loading your profile…</span>}{error && <p className="home-profile-error" role="alert">Your profile could not be loaded. <button type="button" onClick={onRetry}>Try again</button></p>}</section>
       <a className="feature" href="/events" onClick={go("/events")}>
         <img src="/assets/img/worship.jpg" alt=""/>
         <div className="in"><p className="when-label">Next gathering, Nov 1 at 9:00 AM</p><h2>Sunday Service</h2><p className="where">Main Auditorium</p><span className="go">View details <Icon name="chevron" className="i i-sm"/></span></div>
