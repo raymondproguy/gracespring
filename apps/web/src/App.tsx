@@ -1,4 +1,3 @@
-import { APP_NAME } from "@gracespring/shared";
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { AuthScreen } from "./AuthScreen";
 import { ProfileOnboarding, type Profile } from "./ProfileOnboarding";
@@ -347,17 +346,17 @@ export function App() {
   }
 
   return (
-    <main className="welcome-screen">
-      <p className="eyebrow">GraceSpring Family Church</p>
-      <h1>{APP_NAME}</h1>
-      <p>Grow in faith and stay connected with your church family.</p>
-      <div className="welcome-screen__actions">
-        <button className="profile-onboarding__button" onClick={() => navigate("/signup")} type="button">
-          Create account
-        </button>
-        <button className="welcome-screen__signin" onClick={() => navigate("/signin")} type="button">
-          Sign in
-        </button>
+    <main className="cover splash">
+      <img className="bg" src="/assets/img/church.jpg" alt="GraceSpring church community" />
+      <div className="splash-top">
+        <div className="logo-badge"><img src="/assets/img/mark.png" alt="GraceSpring emblem" /></div>
+        <h1 className="wordmark">GraceSpring<small>Family Church</small></h1>
+        <p className="tagline">Connect. Grow. Serve.</p>
+        <p className="splash-copy">A church community where faith, family and purpose meet.</p>
+      </div>
+      <div className="splash-bottom">
+        <a className="btn btn-white btn-block" href="/signup" onClick={(event) => handleNavigation(event, "/signup")}>Get started</a>
+        <p>Already have an account? <a href="/signin" onClick={(event) => handleNavigation(event, "/signin")}>Sign in</a></p>
       </div>
     </main>
   );

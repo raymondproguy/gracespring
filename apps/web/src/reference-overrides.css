@@ -7,6 +7,23 @@ main.main {
   text-align: left;
 }
 
+main.cover {
+  display: flex;
+  min-height: 100dvh;
+  align-content: normal;
+  justify-items: normal;
+  padding: 0;
+  text-align: left;
+}
+
+main.cover > .bg { z-index: 1; }
+main.cover::before { z-index: 2; pointer-events: none; }
+main.cover > *:not(.bg) { position: relative; z-index: 3; }
+
+.feature > img { z-index: 1; }
+.feature::before { z-index: 2; }
+.feature > .in { position: relative; z-index: 3; }
+
 .home-profile-error { margin-top: 8px; color: var(--danger) !important; font-size: 13px; }
 .home-profile-error button { color: var(--link); font-weight: 700; text-decoration: underline; }
 
