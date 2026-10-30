@@ -43,3 +43,197 @@ p {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+.profile-onboarding {
+  --profile-accent: var(--accent, #3b2a96);
+  --profile-bg: var(--bg, #fff);
+  --profile-ink: var(--ink, #14131d);
+  --profile-muted: var(--muted, #747384);
+  --profile-line: var(--line, #ebebf0);
+  --profile-soft: var(--soft, #f5f5f8);
+  width: min(100%, 520px);
+  min-height: 100vh;
+  align-content: start;
+  justify-items: stretch;
+  gap: 0;
+  margin-inline: auto;
+  padding: max(3.5rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
+  background: var(--profile-bg);
+  color: var(--profile-ink);
+  text-align: left;
+}
+
+.profile-onboarding h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.profile-onboarding .eyebrow {
+  margin: 0;
+  color: var(--profile-accent);
+}
+
+.profile-onboarding__intro {
+  margin: 0.8rem 0 1.8rem;
+  color: var(--profile-muted);
+  line-height: 1.6;
+  text-align: left;
+}
+
+.profile-onboarding__form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.profile-onboarding__photo {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 4.5rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+}
+
+.profile-onboarding__photo input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.profile-onboarding__photo:focus-within .profile-onboarding__avatar {
+  outline: 2px solid var(--profile-accent);
+  outline-offset: 3px;
+}
+
+.profile-onboarding__avatar {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--profile-soft);
+  color: var(--profile-accent);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.profile-onboarding__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-onboarding__photo-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.profile-onboarding__photo-copy small,
+.profile-onboarding__field span small,
+.profile-onboarding__count {
+  color: var(--profile-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.profile-onboarding__field {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--profile-ink);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.profile-onboarding__field span small {
+  margin-left: 0.25rem;
+}
+
+.profile-onboarding__field input,
+.profile-onboarding__field textarea {
+  width: 100%;
+  border: 1px solid var(--profile-line);
+  border-radius: 12px;
+  background: var(--profile-soft);
+  color: var(--profile-ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.profile-onboarding__field input {
+  height: 3.25rem;
+  padding: 0 0.9rem;
+}
+
+.profile-onboarding__field textarea {
+  min-height: 7rem;
+  padding: 0.8rem 0.9rem;
+  resize: vertical;
+}
+
+.profile-onboarding__field input:focus,
+.profile-onboarding__field textarea:focus {
+  border-color: var(--profile-accent);
+  outline: 2px solid color-mix(in srgb, var(--profile-accent) 20%, transparent);
+  outline-offset: 1px;
+}
+
+.profile-onboarding__count {
+  justify-self: end;
+  margin-top: -0.2rem;
+}
+
+.profile-onboarding__error {
+  margin: 0;
+  color: #b3261e;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.profile-onboarding__button {
+  display: inline-grid;
+  min-height: 3.25rem;
+  place-items: center;
+  margin-top: 0.25rem;
+  padding: 0.65rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--profile-accent);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.profile-onboarding__button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.profile-onboarding__skeleton {
+  width: 100%;
+  height: 20rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(90deg, var(--profile-soft), var(--profile-line), var(--profile-soft));
+  background-size: 200% 100%;
+  animation: profile-shimmer 1.4s ease infinite;
+}
+
+.profile-onboarding[aria-busy="true"] p {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+@keyframes profile-shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-onboarding__skeleton { animation: none; }
+}
