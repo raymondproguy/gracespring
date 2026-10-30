@@ -19,6 +19,9 @@ Decision log. Add a new entry whenever a choice is made. Do not silently change 
 | 11 | Releases tagged v1, v2, v3 | Owner's choice |
 | 12 | Calls, chat and groups come after the content release | Heaviest part, built last |
 | 13 | Only admins post devotionals and announcements | Product rule |
+| 14 | API verifies access tokens locally, HS256 with the shared JWT_SECRET | Measured in docs/AUTH_FINDINGS.md: /v1/verify checks signature and expiry only, it does not consult sessions, so calling it per request buys nothing and costs a round trip. Secret kept in root readable env files only. API trusts only sub from the token, role comes from profiles |
+| 15 | Web stores the refresh token in memory plus localStorage for now | csag has no cookie support (tested: no Set-Cookie anywhere). No third party scripts in the app, XSS trade-off accepted at test user scale. Revisit if csag adds cookie support |
+| 16 | GraceSpring API sends real email, triggered by csag webhooks | csag ships console senders only (logs to stdout). WEBHOOK_URL with X-Cryden-Signature HMAC verification is the supported path; API subscribes to signup_success and email_change_requested and sends via SMTP |
 
 ## Defaults in use until decided
 
@@ -39,5 +42,7 @@ Decision log. Add a new entry whenever a choice is made. Do not silently change 
 5. Domain names: app, api, auth, auth console.
 6. Email sending provider for csag and app mail (SMTP details).
 7. Policy for minors in Youth Ministry chats (see docs/SECURITY.md).
-8. Does csag run correctly inside its own schema (search_path)? If not, use two databases on the same server.
-9. How do csag verification and magic link emails get delivered? The csag env has no SMTP settings (see docs/AUTH.md, spike item 11).
+8. Does csag run correctly inside its own schema (search_path)? If not, use two databases on the same server. ANSWERED by the spike: yes, tested end to end (docs/AUTH_FINDINGS.md item 12). Decision 3 stands.
+9. How do csag verification and magic link emails get delivered? The csag env has no SMTP settings (see docs/AUTH.md, spike item 11). ANSWERED by the spike: the GraceSpring API receives csag webhooks and sends the email itself via SMTP (decision 16). Still open: which SMTP provider (item 6).
+10. OAuth callback answers JSON, not a browser redirect: how does the web app complete the flow? Options: host a small callback page that forwards code and state to csag from JS, or ask csag for a redirect_uri override (docs/AUTH_FINDINGS.md item 7).
+11. csag refresh tokens never expire (sessions have no TTL column). Acceptable at test user scale, revisit before real users (docs/AUTH_FINDINGS.md item 3).
