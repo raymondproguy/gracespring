@@ -11,7 +11,7 @@ The ordered work queue. Work from the top. Check items off as they are finished 
 Branch names are suggestions.
 
 1. [x] docs/repo-setup: move the static site into design/ with git mv, add .gitignore, .editorconfig, .env.example, README.md. Commit each separately.
-2. [ ] feat/auth-spike: run the csag token spike described in docs/AUTH.md. Record findings in docs/AUTH_FINDINGS.md (signing algorithm, claims, key distribution, verify endpoint, refresh behaviour, cookie support, CORS, error shapes, rate limits, console URL, how users are stored). Do not build on assumptions before this is done.
+2. [x] feat/auth-spike: run the csag token spike described in docs/AUTH.md. Record findings in docs/AUTH_FINDINGS.md (signing algorithm, claims, key distribution, verify endpoint, refresh behaviour, cookie support, CORS, error shapes, rate limits, console URL, how users are stored). Do not build on assumptions before this is done.
 3. [ ] feat/monorepo-skeleton: pnpm workspace, Go module in apps/api, Vite app in apps/web, packages/shared, openapi/openapi.yaml with /health only, Makefile or task runner, CI workflow for lint and tests.
 4. [ ] feat/api-foundation: config loading from environment, structured logging, chi router, health and readiness endpoints, error format, request IDs, graceful shutdown, Postgres connection, goose migrations, sqlc setup.
 5. [ ] feat/api-auth-middleware: verify csag tokens locally (per spike result), load profile and role into request context, rate limit middleware (Redis).
