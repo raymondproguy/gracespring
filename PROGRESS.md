@@ -6,7 +6,7 @@ Running record of what has been built. Newest entries first in the log. Keep the
 
 | Release | Status | Branch or tag | Notes |
 |---|---|---|---|
-| v1 Foundations and content | In progress | feat/monorepo-skeleton | Repo setup, auth spike and monorepo skeleton done |
+| v1 Foundations and content | In progress | feat/api-foundation | Repo setup, auth spike, monorepo skeleton and API foundation done |
 | v2 Community and prayer | Not started | | |
 | v3 Chat and verse cards | Not started | | |
 | v4 Calls and live | Not started | | |
@@ -20,7 +20,7 @@ Mark with the date and the commit or tag when done.
 - [x] Repo setup and design/ moved
 - [x] csag token spike
 - [x] Monorepo skeleton and CI
-- [ ] API foundation
+- [x] API foundation
 - [ ] Auth middleware
 - [ ] Profiles
 - [ ] Roles, admin seed, audit log
@@ -57,6 +57,7 @@ Mark with the date and the commit or tag when done.
 Format: date, branch, what changed, what to know.
 
 - 2026-10-30, feat/monorepo-skeleton: added pnpm workspace, Go API module with a health route, React/Vite TypeScript shell, shared package, health-only OpenAPI contract, Makefile, and CI for formatting, vet, tests, lint and build. Local development commands are in README.md.
+- 2026-10-30, feat/api-foundation: added environment configuration, JSON slog logging, chi routing and middleware, structured API errors, request IDs, health/readiness routes, PostgreSQL pool, graceful shutdown, Goose migration command and sqlc config/tool. Database readiness is checked on /ready; health stays independent of dependencies.
 
 - 2026-10-29, feat/auth-spike: ran the csag token spike. All 13 questions in docs/AUTH.md answered in docs/AUTH_FINDINGS.md. Key results: HS256 with shared secret, no JWKS; claims are only sub/iat/exp (email and role NOT in tokens, profiles must store email); /v1/verify does not check session revocation, so local verification was chosen (DECISIONS.md 14); refresh rotation with family revocation on reuse works; logout needs session_id in the body (500 otherwise, bug noted); no cookies, no email sending in the binary (webhooks to our API chosen, DECISIONS.md 16); shared database with search_path=auth tested end to end and passed (DECISIONS.md 3 confirmed). Test user remains in the local csag database for further development. Throwaway schema-test database dropped.
 - 2026-10-29, docs/repo-setup: moved the static UI site (96 HTML pages, css/, js/, assets/, its README) into design/ with git mv as pure renames. Added .editorconfig, root .env.example with placeholder values for the API, and a new root README covering layout, docs map, branch rules and the secret check. .gitignore already existed and covers everything docs/GIT_WORKFLOW.md requires. Note: a local .env with real csag and OAuth values exists at the repo root, is untracked and correctly ignored.

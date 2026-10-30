@@ -1,34 +1,76 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
+	"context"
+	"errors"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/config"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/db"
+	"github.com/raymondproguy/gracespring/apps/api/internal/platform/logging"
+	"github.com/raymondproguy/gracespring/apps/api/internal/server"
 )
 
-type healthResponse struct {
-	Data struct {
-		Status string `json:"status"`
-	} `json:"data"`
+func main() {
+	if err := run(); err != nil {
+		slog.Error("API stopped", "error", err)
+		os.Exit(1)
+	}
 }
 
-func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		response := healthResponse{}
-		response.Data.Status = "ok"
-		if err := json.NewEncoder(w).Encode(response); err != nil {
-			log.Printf("encode health response: %v", err)
-		}
-	})
+func run() error {
+	logger := logging.New("info")
+	slog.SetDefault(logger)
 
-	server := &http.Server{
-		Addr:              ":8080",
-		Handler:           mux,
-		ReadHeaderTimeout: 5 * time.Second,
+	cfg, err := config.Load()
+	if err != nil {
+		return err
 	}
-	log.Printf("API listening on %s", server.Addr)
-	log.Fatal(server.ListenAndServe())
+
+	logger = logging.New(cfg.LogLevel)
+	slog.SetDefault(logger)
+
+	pool, err := db.NewPool(cfg.DatabaseURL, cfg.DBMaxConns)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	handler := server.New(cfg, logger, pool)
+	httpServer := &http.Server{
+		Addr:              cfg.HTTPAddr,
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	serveErr := make(chan error, 1)
+	go func() {
+		logger.Info("API listening", "addr", cfg.HTTPAddr, "environment", cfg.AppEnv)
+		serveErr <- httpServer.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
+		if !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			return err
+		}
+		logger.Info("API shut down cleanly")
+	}
+
+	return nil
 }

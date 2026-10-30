@@ -1,4 +1,4 @@
-.PHONY: dev build lint test api
+.PHONY: dev build lint test api migrate-up migrate-status sqlc
 
 dev:
 	pnpm dev
@@ -14,3 +14,12 @@ test:
 
 api:
 	cd apps/api && go run ./cmd/api
+
+migrate-up:
+	cd apps/api && go run ./cmd/migrate up
+
+migrate-status:
+	cd apps/api && go run ./cmd/migrate status
+
+sqlc:
+	cd apps/api && go tool sqlc generate -f sqlc.yaml

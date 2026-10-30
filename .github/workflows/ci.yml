@@ -15,6 +15,10 @@ jobs:
           go-version-file: apps/api/go.mod
           cache-dependency-path: apps/api/go.mod
       - run: test -z "$(gofmt -l $(find . -name '*.go' -not -path './design/*'))"
+      - run: go tool sqlc generate -f sqlc.yaml
+        working-directory: apps/api
+      - run: git diff --exit-code -- internal/platform/dbgen
+        working-directory: apps/api
       - run: go vet ./...
         working-directory: apps/api
       - run: go test ./...

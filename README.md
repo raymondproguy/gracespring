@@ -43,6 +43,9 @@ make api       # Go API at localhost:8080
 make build
 make lint
 make test
+make migrate-status  # requires DATABASE_URL and a reachable database
+make migrate-up      # applies forward migrations only
+make sqlc            # regenerates Go queries from apps/api/sqlc.yaml
 ```
 
-The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.
+Set `DATABASE_URL` in your shell before starting the API. The app reads configuration only from environment variables and does not load `.env` files. The API contract is in `openapi/openapi.yaml`. See `NEXT.md` for the ordered build queue.

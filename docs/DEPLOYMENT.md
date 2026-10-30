@@ -36,7 +36,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 ## Database
 
 - One database with two schemas: auth for csag and app for GraceSpring. Each has its own database user with rights only on its own schema. The csag connection string sets search_path to auth, the app sets it to app. If the schema test in docs/AUTH.md fails, use two databases on the same server instead.
-- Migrations run with the goose command at deploy time, before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed.
+- Migrations run with `gracespring-migrate up` (built from `apps/api/cmd/migrate`) before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed. The command supports `up` and `status` only, so production migrations stay forward-only.
 - Postgres tuned for the machine size, connection pool in the API sized to match.
 
 ## Backups
@@ -49,7 +49,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 1. All checks green on main. PROGRESS.md and docs updated.
 2. Take a fresh backup.
 3. Build on the server or in CI: API, worker, gateway binaries and the web bundle. Place them in releases/<tag>/.
-4. Run csag migrate if csag changed, then the app migrations.
+4. Run csag migrate if csag changed, then `gracespring-migrate up` for the app migrations.
 5. Switch the current symlink and restart services one at a time. Check health and readiness.
 6. Smoke test: sign in, read a devotional, play audio, post a comment, admin publish.
 7. Tag the release (annotated, for example v1) on main and note it in PROGRESS.md.

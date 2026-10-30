@@ -1,0 +1,93 @@
+package config
+
+import (
+	"fmt"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
+)
+
+type Config struct {
+	AppEnv         string
+	HTTPAddr       string
+	LogLevel       string
+	DatabaseURL    string
+	DBMaxConns     int32
+	AllowedOrigins []string
+}
+
+func Load() (Config, error) {
+	cfg := Config{
+		AppEnv:      value("APP_ENV", "development"),
+		HTTPAddr:    value("HTTP_ADDR", ":8080"),
+		LogLevel:    value("LOG_LEVEL", "info"),
+		DatabaseURL: strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		AllowedOrigins: splitList(value(
+			"ALLOWED_ORIGINS",
+			"http://localhost:5173",
+		)),
+	}
+
+	maxConns, err := strconv.ParseInt(value("DB_MAX_CONNS", "10"), 10, 32)
+	if err != nil || maxConns < 1 {
+		return Config{}, fmt.Errorf("DB_MAX_CONNS must be a positive integer")
+	}
+	cfg.DBMaxConns = int32(maxConns)
+
+	if cfg.AppEnv != "development" && cfg.AppEnv != "test" && cfg.AppEnv != "production" {
+		return Config{}, fmt.Errorf("APP_ENV must be development, test, or production")
+	}
+	if cfg.HTTPAddr == "" {
+		return Config{}, fmt.Errorf("HTTP_ADDR must not be empty")
+	}
+	if cfg.LogLevel != "debug" && cfg.LogLevel != "info" && cfg.LogLevel != "warn" && cfg.LogLevel != "error" {
+		return Config{}, fmt.Errorf("LOG_LEVEL must be debug, info, warn, or error")
+	}
+	if cfg.DatabaseURL == "" {
+		return Config{}, fmt.Errorf("DATABASE_URL is required")
+	}
+	if err := validateDatabaseURL(cfg.DatabaseURL); err != nil {
+		return Config{}, err
+	}
+	if err := validateOrigins(cfg.AllowedOrigins); err != nil {
+		return Config{}, err
+	}
+
+	return cfg, nil
+}
+
+func validateOrigins(origins []string) error {
+	for _, origin := range origins {
+		parsed, err := url.Parse(origin)
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return fmt.Errorf("ALLOWED_ORIGINS must contain comma-separated HTTP or HTTPS origins")
+		}
+	}
+	return nil
+}
+
+func validateDatabaseURL(raw string) error {
+	parsed, err := url.Parse(raw)
+	if err != nil || (parsed.Scheme != "postgres" && parsed.Scheme != "postgresql") || parsed.Host == "" || parsed.Path == "/" {
+		return fmt.Errorf("DATABASE_URL must be a valid PostgreSQL URL")
+	}
+	return nil
+}
+
+func value(key, fallback string) string {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func splitList(value string) []string {
+	var values []string
+	for _, item := range strings.Split(value, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			values = append(values, item)
+		}
+	}
+	return values
+}
