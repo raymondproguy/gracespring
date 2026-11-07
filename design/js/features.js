@@ -1,3 +1,19 @@
+/* App lock guard: runs first so locked users never see app screens. */
+(function () {
+  try {
+    var page = location.pathname.split("/").pop() || "index.html";
+    var PUBLIC = /^(index|signin|signup|onboarding-\d|permission-notifications|lock-setup|pin-setup|lock)\.html$/;
+    var on = localStorage.getItem("gs-lock-on") === "1" && localStorage.getItem("gs-lock-method");
+    if (on && !PUBLIC.test(page) && sessionStorage.getItem("gs-unlocked") !== "1")
+      location.replace("lock.html?next=" + encodeURIComponent(page + location.search));
+    var hiddenAt = 0;
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) hiddenAt = Date.now();
+      else if (hiddenAt && Date.now() - hiddenAt > 60000) { sessionStorage.removeItem("gs-unlocked"); if (on && !PUBLIC.test(page)) location.reload(); }
+    });
+  } catch (e) {}
+})();
+
 /* GraceSpring feature scripts (front-end only): share image, chat extras, notifications, app lock.
    Uses helpers exported by main.js on window.GS. */
 (function () {
@@ -171,4 +187,295 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(share.url).then(done, done); else done();
     }
   });
+})();
+
+/* ---------- Chat: WhatsApp-style composer, voice notes, files, bot ---------- */
+(function () {
+  "use strict";
+  var GS = window.GS; if (!GS) return;
+  var $ = GS.$, $$ = GS.$$, toast = GS.toast, closeSheets = GS.closeSheets;
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest("[data-attach-toast]");
+    if (a) { closeSheets(); toast(a.getAttribute("data-attach-toast")); }
+  });
+
+  /* voice bubble playback (simulated) */
+  var playing = null;
+  function setBars(w, f) { var bs = w.children, n = Math.round(bs.length * f); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle("on", i < n); }
+  function parseDur(s) { var p = String(s).split(":"); return (+p[0] || 0) * 60 + (+p[1] || 0); }
+  function stopPlay() {
+    if (!playing) return;
+    clearInterval(playing.timer); playing.btn.classList.remove("playing");
+    setBars(playing.wave, 0); playing = null;
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-voice]"); if (!b) return;
+    var same = playing && playing.btn === b; stopPlay(); if (same) return;
+    var wave = b.parentNode.querySelector(".wave"), total = Math.max(parseDur(b.getAttribute("data-dur")), 2), t0 = Date.now();
+    b.classList.add("playing");
+    playing = { btn: b, wave: wave, timer: setInterval(function () {
+      var f = (Date.now() - t0) / (total * 1000);
+      if (f >= 1) { stopPlay(); return; }
+      setBars(wave, f);
+    }, 120) };
+  });
+
+  var form = $("[data-wa-form]"); if (!form) return;
+  var body = $("[data-chat-body]"), input = $("input[type=text]", form), rec = $("[data-rec]");
+  var timeEl = $("[data-rec-time]"), isBot = body.hasAttribute("data-bot");
+  var now = function () { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
+  var toEnd = function () { window.scrollTo(0, document.documentElement.scrollHeight); };
+  var clear = function () { var em = $("[data-empty]", body); if (em) em.remove(); };
+  function fromTpl(id) { return document.getElementById(id).content.firstElementChild.cloneNode(true); }
+  function put(node) { clear(); body.appendChild(node); toEnd(); return node; }
+  function setTime(n) { var t = $(".msg-time", n); if (t) t.textContent = now(); }
+
+  function addText(text, side) {
+    var m = document.createElement("div"); m.className = "msg " + side;
+    if (side === "in" && isBot) { var a = fromTpl("tpl-typing"); m.innerHTML = a.firstElementChild.outerHTML; }
+    var b = document.createElement("div"); b.className = "bub";
+    var p = document.createElement("p"); p.textContent = text;
+    var t = document.createElement("span"); t.className = "msg-time"; t.textContent = now();
+    b.appendChild(p); b.appendChild(t); m.appendChild(b); return put(m);
+  }
+  function addLink(label, href) {
+    var last = body.lastElementChild; if (!last) return;
+    var a = document.createElement("a"); a.className = "bot-link"; a.href = href; a.textContent = label;
+    last.querySelector(".bub").insertBefore(a, last.querySelector(".msg-time"));
+  }
+
+  /* bot */
+  var VERSES = ["\"The Lord is my shepherd; I shall not want.\" Psalm 23:1", "\"Be strong and courageous. Do not be afraid.\" Joshua 1:9", "\"I can do all things through Christ who strengthens me.\" Philippians 4:13", "\"Trust in the Lord with all your heart.\" Proverbs 3:5"];
+  var vi = 0;
+  var BRAIN = [
+    [/service|time|when|sunday|schedule/, "Sunday service is at 9:00 AM in the Main Auditorium. Doors open at 8:30. Midweek prayer is on Wednesday at 6:00 PM.", "See events", "events.html"],
+    [/where|locat|address|direction|map/, "We are at 12 Grace Avenue, Ikeja, Lagos. Parking is free behind the main hall.", "Get directions", "events.html"],
+    [/give|offering|tithe|donat/, "Online giving is coming soon to the app. For now, please ask a church admin or use the offering box on Sunday."],
+    [/verse|bible|scripture/, null],
+    [/pray|prayer|help|hurt|sad|sick/, "I am sorry you are going through this. You can send a prayer request and the prayer team will stand with you.", "Request prayer", "prayer.html"],
+    [/devotion|read|study/, "Today's devotional is ready for you. It takes about five minutes.", "Read devotional", "devotional.html"],
+    [/hi|hello|hey|good morning/, "Hello Raymond. How can I help you today?"],
+    [/thank/, "You are welcome. God bless you."]
+  ];
+  function botReply(q) {
+    var s = q.toLowerCase(), hit = null;
+    BRAIN.forEach(function (r) { if (!hit && r[0].test(s)) hit = r; });
+    var typing = fromTpl("tpl-typing"); put(typing);
+    setTimeout(function () {
+      typing.remove();
+      var text, label, href;
+      if (hit && hit[1] === null) { text = VERSES[vi++ % VERSES.length]; }
+      else if (hit) { text = hit[1]; label = hit[2]; href = hit[3]; }
+      else { text = "I am not sure about that yet. I can help with service times, location, giving, prayer, the devotional and Bible verses. A church admin can help with anything else."; }
+      var m = addText(text, "in");
+      if (label) addLink(label, href);
+    }, 900);
+  }
+
+  function sendText() {
+    var v = input.value.trim(); if (!v) return;
+    addText(v, "out"); input.value = ""; form.classList.remove("has-text");
+    if (isBot) botReply(v);
+  }
+  input.addEventListener("input", function () { form.classList.toggle("has-text", !!input.value.trim()); });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (form.classList.contains("has-text")) sendText(); else startRec();
+  });
+  $$("[data-bot-chip]").forEach(function (c) {
+    c.addEventListener("click", function () { addText(c.textContent, "out"); botReply(c.textContent); var w = c.parentNode; if (w) w.hidden = true; });
+  });
+
+  /* voice recording (simulated) */
+  var recTimer = null, recStart = 0;
+  function fmt(s) { return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function startRec() {
+    closeSheets(); form.hidden = true; rec.hidden = false; recStart = Date.now(); timeEl.textContent = "0:00";
+    clearInterval(recTimer);
+    recTimer = setInterval(function () { timeEl.textContent = fmt(Math.floor((Date.now() - recStart) / 1000)); }, 250);
+  }
+  function endRec() { clearInterval(recTimer); rec.hidden = true; form.hidden = false; }
+  $("[data-rec-cancel]").addEventListener("click", function () { endRec(); toast("Recording deleted."); });
+  $("[data-rec-send]").addEventListener("click", function () {
+    var secs = Math.max(1, Math.round((Date.now() - recStart) / 1000)); endRec();
+    var n = fromTpl("tpl-voice"), btn = $("[data-voice]", n), d = fmt(secs);
+    btn.setAttribute("data-dur", d); $(".vdur", n).textContent = d; setTime(n); put(n);
+  });
+  var attachVoice = $("[data-attach-voice]"); if (attachVoice) attachVoice.addEventListener("click", startRec);
+  if (GS.params.get("vm")) { toast("Leave a voicemail. Tap send when done."); startRec(); }
+
+  /* photos and documents */
+  function size(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+  $$("[data-file-image]").forEach(function (f) {
+    f.addEventListener("change", function () {
+      var file = f.files && f.files[0]; if (!file) return; closeSheets();
+      var n = fromTpl("tpl-image"); $("img", n).src = URL.createObjectURL(file); setTime(n); put(n); f.value = "";
+    });
+  });
+  $$("[data-file-doc]").forEach(function (f) {
+    f.addEventListener("change", function () {
+      var file = f.files && f.files[0]; if (!file) return; closeSheets();
+      var n = fromTpl("tpl-file"); $("b", n).textContent = file.name;
+      var ext = (file.name.split(".").pop() || "file").toUpperCase();
+      $("small", n).textContent = size(file.size) + " · " + ext; setTime(n); put(n); f.value = "";
+    });
+  });
+  var cam = $("[data-cam]"); if (cam) cam.addEventListener("click", function () { var f = $("[data-file-image]:nth-of-type(1)", document); var all = $$("[data-file-image]"); (all[1] || all[0]).click(); });
+  toEnd();
+})();
+
+
+/* ---------- Notifications banner, app lock, PIN ---------- */
+(function () {
+  "use strict";
+  var GS = window.GS; if (!GS) return;
+  var $ = GS.$, $$ = GS.$$, toast = GS.toast, openSheet = GS.openSheet, closeSheets = GS.closeSheets;
+  var S = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  var tpl = function (id) { var t = document.getElementById(id); return t ? t.innerHTML : ""; };
+  var next = function () { var n = GS.params.get("next"); return n && /^[\w\-.?=&%]+$/.test(n) ? n : "home.html"; };
+
+  /* switches (persisted) */
+  $$("[data-switch]").forEach(function (sw) {
+    var key = "gs-sw-" + sw.getAttribute("data-switch"), saved = S.get(key);
+    if (saved !== null) sw.setAttribute("aria-checked", saved);
+    sw.addEventListener("click", function () {
+      var on = sw.getAttribute("aria-checked") !== "true";
+      sw.setAttribute("aria-checked", String(on)); S.set(key, String(on));
+      if (sw.getAttribute("data-switch") === "lock-on") {
+        if (on && !S.get("gs-lock-method")) { sw.setAttribute("aria-checked", "false"); S.set(key, "false"); toast("Choose Face ID, fingerprint or a PIN first."); return; }
+        S.set("gs-lock-on", on ? "1" : "0"); toast(on ? "App lock is on." : "App lock is off.");
+      }
+      if (sw.getAttribute("data-switch") === "n-all") S.set("gs-notif", on ? "on" : "off");
+    });
+  });
+
+  /* ---- iOS style banner ---- */
+  var banner;
+  function showBanner(o) {
+    if (banner) banner.remove();
+    banner = document.createElement("a");
+    banner.className = "ios-banner"; banner.href = o.href || "messages.html";
+    banner.innerHTML = '<img src="assets/img/mark.png" alt=""><span class="ib-text"><span class="ib-top"><b>' + (o.app || "GRACESPRING") + '</b><em>now</em></span><strong></strong><span class="ib-body"></span></span>';
+    $("strong", banner).textContent = o.title; $(".ib-body", banner).textContent = o.body;
+    document.body.appendChild(banner);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { banner.classList.add("show"); }); });
+    var b = banner, y0 = null;
+    var hide = function () { b.classList.remove("show"); setTimeout(function () { b.remove(); }, 400); };
+    var timer = setTimeout(hide, 6000);
+    b.addEventListener("touchstart", function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+    b.addEventListener("touchend", function (e) { if (y0 !== null && y0 - e.changedTouches[0].clientY > 24) { clearTimeout(timer); hide(); } y0 = null; });
+    if (navigator.vibrate) try { navigator.vibrate(30); } catch (e) {}
+  }
+  GS.showBanner = showBanner;
+  var notifOn = function () { return S.get("gs-notif") !== "off"; };
+  var DEMO = { title: "Pastor James Okafor", body: "Thank you for praying for us. See you on Sunday.", href: "chat-james.html" };
+  function realNotification(o) {
+    try { if ("Notification" in window && Notification.permission === "granted") new Notification(o.title, { body: o.body, icon: "assets/img/mark.png" }); } catch (e) {}
+  }
+  var page = location.pathname.split("/").pop();
+  if (page === "home.html" && notifOn() && !sessionStorage.getItem("gs-banner")) {
+    setTimeout(function () { sessionStorage.setItem("gs-banner", "1"); showBanner(DEMO); }, 5000);
+  }
+  var test = $("[data-test-notification]");
+  if (test) test.addEventListener("click", function () {
+    if (!notifOn()) { toast("Turn on Allow notifications first."); return; }
+    showBanner({ title: "GraceSpring", body: "This is how notifications will look on your phone.", href: "notification-settings.html" });
+    realNotification({ title: "GraceSpring", body: "This is how notifications will look on your phone." });
+  });
+  var allow = $("[data-allow-notifications]");
+  if (allow) allow.addEventListener("click", function () {
+    var go = function () { S.set("gs-notif", "on"); location.href = "lock-setup.html"; };
+    try { if ("Notification" in window && Notification.requestPermission) { Notification.requestPermission().then(go, go); return; } } catch (e) {}
+    go();
+  });
+  var skipN = $("[data-skip-notifications]"); if (skipN) skipN.addEventListener("click", function () { S.set("gs-notif", "off"); });
+
+  /* ---- biometric sheet (our own prompt) ---- */
+  var bioTimer = null;
+  function biometric(kind, ok) {
+    var wrap = $("[data-bio]"); if (!wrap) { ok(); return; }
+    var face = kind === "face";
+    $("[data-bio-icon]").innerHTML = tpl(face ? "bio-face" : "bio-finger");
+    $("[data-bio-title]").textContent = face ? "Face ID" : "Fingerprint";
+    $("[data-bio-msg]").textContent = face ? "Look at your phone to continue." : "Touch the fingerprint sensor.";
+    wrap.classList.remove("done"); openSheet("bio");
+    clearTimeout(bioTimer);
+    bioTimer = setTimeout(function () {
+      if (!$("#bio").classList.contains("is-open")) return;
+      wrap.classList.add("done"); $("[data-bio-icon]").innerHTML = tpl("bio-ok");
+      $("[data-bio-msg]").textContent = "Recognised.";
+      bioTimer = setTimeout(function () { closeSheets(); ok(); }, 700);
+    }, 1500);
+  }
+  var bioEl = $("#bio");
+  if (bioEl) bioEl.addEventListener("click", function (e) { if (e.target.closest("[data-close]") || e.target === bioEl) clearTimeout(bioTimer); });
+
+  /* ---- choose method (setup + settings) ---- */
+  function marks() {
+    var m = S.get("gs-lock-method"), on = S.get("gs-lock-on") === "1";
+    $$("[data-method-mark]").forEach(function (el) { el.textContent = on && el.getAttribute("data-method-mark") === m ? "On" : (el.getAttribute("data-method-mark") === "pin" && S.get("gs-pin") ? "Set" : ""); });
+    var sw = $("[data-switch=lock-on]"); if (sw) sw.setAttribute("aria-checked", String(on));
+  }
+  marks();
+  $$("[data-lock-choose]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var kind = b.getAttribute("data-lock-choose");
+      biometric(kind, function () {
+        S.set("gs-lock-method", kind); S.set("gs-lock-on", "1"); sessionStorage.setItem("gs-unlocked", "1");
+        if (!S.get("gs-pin")) { location.href = "pin-setup.html?backup=1&next=" + (page === "lock-setup.html" ? "home.html" : "lock-settings.html"); return; }
+        if (page === "lock-setup.html") { toast((kind === "face" ? "Face ID" : "Fingerprint") + " is on."); setTimeout(function () { location.href = "home.html"; }, 800); }
+        else { marks(); toast((kind === "face" ? "Face ID" : "Fingerprint") + " is on."); }
+      });
+    });
+  });
+  var skipL = $("[data-skip-lock]"); if (skipL) skipL.addEventListener("click", function () { S.set("gs-lock-on", "0"); });
+
+  /* ---- PIN pad: setup + unlock ---- */
+  var card = $("[data-pin-mode]");
+  if (card) {
+    var mode = card.getAttribute("data-pin-mode"), dots = $$("[data-pin-dots] i", card), val = "", first = null;
+    var msg = $("[data-pin-msg]", card), title = $("[data-pin-title]", card);
+    var paint = function () { dots.forEach(function (d, i) { d.classList.toggle("on", i < val.length); }); };
+    var shake = function () { var d = $("[data-pin-dots]", card); d.classList.add("shake"); setTimeout(function () { d.classList.remove("shake"); }, 450); };
+    var done = function () {
+      if (mode === "setup") {
+        if (first === null) { first = val; val = ""; title.textContent = "Confirm your PIN"; msg.textContent = "Enter the same code again."; paint(); return; }
+        if (first !== val) { first = null; val = ""; shake(); title.textContent = "Create a PIN"; msg.textContent = "Those did not match. Try again."; paint(); return; }
+        S.set("gs-pin", val); if (!S.get("gs-lock-method")) S.set("gs-lock-method", "pin"); S.set("gs-lock-on", "1"); sessionStorage.setItem("gs-unlocked", "1");
+        toast("PIN saved. App lock is on."); setTimeout(function () { location.href = next(); }, 900);
+      } else {
+        if (val === (S.get("gs-pin") || "1234")) { sessionStorage.setItem("gs-unlocked", "1"); location.href = next(); }
+        else { shake(); msg.textContent = "Wrong PIN. Try again."; val = ""; setTimeout(paint, 300); }
+      }
+    };
+    card.addEventListener("click", function (e) {
+      var k = e.target.closest("[data-key]"); if (!k) return;
+      var v = k.getAttribute("data-key");
+      if (v === "del") val = val.slice(0, -1); else if (val.length < 4) val += v;
+      paint(); if (val.length === 4) setTimeout(done, 180);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (/^\d$/.test(e.key) && val.length < 4) { val += e.key; paint(); if (val.length === 4) setTimeout(done, 180); }
+      else if (e.key === "Backspace") { val = val.slice(0, -1); paint(); }
+    });
+    if (mode === "unlock") {
+      var method = S.get("gs-lock-method") || "pin", bioBtn = $("[data-bio-unlock]", card), block = $("[data-pin-block]", card), usePin = $("[data-use-pin]", card);
+      var showPin = function () { block.hidden = false; bioBtn.hidden = true; usePin.hidden = true; };
+      if (method === "pin") showPin();
+      else {
+        bioBtn.hidden = false; usePin.hidden = false;
+        $("[data-bio-btn-icon]", card).innerHTML = tpl(method === "face" ? "ico-face" : "ico-finger");
+        $("[data-bio-btn-label]", card).textContent = method === "face" ? "Unlock with Face ID" : "Unlock with fingerprint";
+        var go = function () { biometric(method, function () { sessionStorage.setItem("gs-unlocked", "1"); location.href = next(); }); };
+        bioBtn.addEventListener("click", go); usePin.addEventListener("click", showPin);
+        setTimeout(go, 500);
+      }
+      $("[data-forgot]", card).addEventListener("click", function () { sessionStorage.removeItem("gs-unlocked"); });
+    }
+  }
 })();
