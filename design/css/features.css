@@ -165,3 +165,5 @@ a.scard:hover { filter: brightness(1.06); }
 @keyframes biopulse{50%{box-shadow:0 0 0 12px color-mix(in srgb,var(--accent) 14%,transparent)}}
 .bio .btn{margin-top:14px}
 .row-sub{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.search-field{min-width:0;max-width:100%}
+.search-field input{min-width:0;width:100%}

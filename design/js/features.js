@@ -343,6 +343,7 @@
   $$("[data-switch]").forEach(function (sw) {
     var key = "gs-sw-" + sw.getAttribute("data-switch"), saved = S.get(key);
     if (saved !== null) sw.setAttribute("aria-checked", saved);
+    if (sw.getAttribute("data-switch") === "n-all" && S.get("gs-notif")) sw.setAttribute("aria-checked", String(S.get("gs-notif") === "on"));
     sw.addEventListener("click", function () {
       var on = sw.getAttribute("aria-checked") !== "true";
       sw.setAttribute("aria-checked", String(on)); S.set(key, String(on));
