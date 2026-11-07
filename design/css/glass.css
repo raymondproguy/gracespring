@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Liquid glass layer (iOS style). Loaded after style.css.
+   Translucent, blurred surfaces with a bright edge, used for bars, buttons
+   and sheets. Content stays flat and calm.
+   ========================================================================== */
+:root {
+  --glass: rgb(255 255 255 / 0.62);
+  --glass-strong: rgb(255 255 255 / 0.84);
+  --glass-edge: rgb(255 255 255 / 0.8);
+  --glass-shadow: 0 10px 30px rgb(30 30 70 / 0.13), 0 1px 2px rgb(30 30 70 / 0.08);
+  --glass-hl: inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -1px 0 rgb(255 255 255 / 0.3);
+  --blur: blur(22px) saturate(180%);
+}
+:root[data-theme="dark"] {
+  --glass: rgb(48 48 56 / 0.55);
+  --glass-strong: rgb(34 34 42 / 0.86);
+  --glass-edge: rgb(255 255 255 / 0.16);
+  --glass-shadow: 0 12px 34px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.4);
+  --glass-hl: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+}
+.glass { background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow), var(--glass-hl); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+
+/* ---------- Floating tab bar ---------- */
+.main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 44px); }
+.tabbar {
+  inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px; margin: 0 auto; max-width: 460px;
+  height: var(--tabbar-h); padding: 5px; gap: 2px; grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--glass-edge); border-radius: 34px;
+  background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--glass-shadow), var(--glass-hl);
+}
+.tabbar a { min-width: 0; padding: 0 2px; gap: 2px; border-radius: 28px; font-size: 10.5px; font-weight: 600; letter-spacing: 0; white-space: nowrap; transition: background 0.2s, color 0.2s; }
+.tabbar a .i { width: 23px; height: 23px; }
+.tabbar a[aria-current="page"] { background: color-mix(in srgb, var(--accent) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.5); font-weight: 700; }
+.fab { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 28px); }
+.toast { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 30px); background: color-mix(in srgb, var(--ink) 86%, transparent); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+body.no-tabbar .toast { bottom: 28px; }
+
+/* ---------- Top bars and round buttons ---------- */
+.appbar { gap: 6px; background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); }
+.appbar h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; }
+.appbar.centered h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.012em; }
+.appbar .icon-btn { width: 40px; height: 40px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow), var(--glass-hl); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+.appbar .icon-btn:hover { background: var(--glass-strong); }
+.appbar .icon-btn:has(.av) { padding: 0; overflow: hidden; }
+.appbar .icon-btn .dot { top: 8px; right: 9px; box-shadow: 0 0 0 2px var(--bg); }
+.appbar .icon-btn .count-badge { top: -3px; right: -3px; }
+
+/* ---------- Buttons ---------- */
+.btn { letter-spacing: -0.012em; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 6px 18px color-mix(in srgb, var(--accent) 26%, transparent); }
+.btn-sm { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25); }
+.btn-outline { background: var(--glass); border: 1px solid var(--glass-edge); color: var(--ink); box-shadow: var(--glass-hl), 0 1px 3px rgb(30 30 70 / 0.1); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+.btn-outline:hover { background: var(--glass-strong); }
+.btn-soft { box-shadow: none; }
+.btn.is-on, .btn-outline.is-on { background: var(--soft); border-color: transparent; color: var(--muted); box-shadow: none; }
+.chip { font-size: 15px; font-weight: 600; }
+
+/* ---------- Sheets float, inset from the screen edge ---------- */
+.backdrop { padding: 0 8px calc(8px + env(safe-area-inset-bottom)); background: rgb(10 10 30 / 0.34); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.sheet { border-radius: 34px; border: 1px solid var(--glass-edge); background: var(--glass-strong); backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); box-shadow: var(--shadow), var(--glass-hl); padding-bottom: 22px; }
+.sheet h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.sheet::before { background: color-mix(in srgb, var(--ink) 22%, transparent); }
+
+/* ---------- Chat bars ---------- */
+.chat-head { background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); border-bottom-color: transparent; }
+.chat-head .icon-btn { width: 40px; height: 40px; }
+.chat-form, .chat-note { background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); border-top-color: transparent; }
+
+/* ---------- Calls ---------- */
+.call-btn { background: rgb(255 255 255 / 0.16); border: 1px solid rgb(255 255 255 / 0.28); backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35); }
+.call-btn.end { background: #ff453a; border-color: rgb(255 255 255 / 0.2); }
+.call-btn.accept { background: #30d158; border-color: rgb(255 255 255 / 0.2); }
+
+@media (min-width: 640px) {
+  .backdrop { padding: 0; }
+  .sheet { border-radius: 30px; }
+}
+@media (min-width: 960px) {
+  .main { padding-bottom: 56px; }
+  .sidebar { background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); }
+  .toast, body.no-tabbar .toast { bottom: 32px; }
+}
