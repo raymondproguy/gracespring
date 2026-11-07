@@ -579,50 +579,6 @@
     });
   }
 
-  var maker = $("[data-card-maker]");
-  if (maker) {
-    var vcard = $("[data-v-card]"), fv = $("textarea[name=verse]", maker), fr = $("input[name=ref]", maker), fn = $("input[name=note]", maker);
-    var paint = function () {
-      $("[data-v-verse]", vcard).textContent = fv.value.trim() || "Your verse appears here";
-      $("[data-v-ref]", vcard).textContent = fr.value.trim();
-      var n = $("[data-v-note]", vcard); n.textContent = fn.value.trim(); n.hidden = !fn.value.trim();
-    };
-    [fv, fr, fn].forEach(function (f) { f.addEventListener("input", paint); });
-    $$("[data-tpl]", maker).forEach(function (s) {
-      s.addEventListener("click", function () {
-        $$("[data-tpl]", maker).forEach(function (o) { o.setAttribute("aria-pressed", String(o === s)); });
-        vcard.className = vcard.className.replace(/tpl-\S+/, "tpl-" + s.getAttribute("data-tpl"));
-      });
-    });
-    $$("[data-verse]", maker).forEach(function (c) {
-      c.addEventListener("click", function () {
-        $$("[data-verse]", maker).forEach(function (o) { o.setAttribute("aria-pressed", String(o === c)); });
-        fv.value = c.getAttribute("data-verse"); fr.value = c.getAttribute("data-ref"); paint();
-      });
-    });
-    $$("[data-vstyle]", maker).forEach(function (b) {
-      b.addEventListener("click", function () {
-        $$("[data-vstyle]", maker).forEach(function (o) { o.setAttribute("aria-selected", String(o === b)); });
-        vcard.classList.toggle("vstyle-sans", b.getAttribute("data-vstyle") === "sans");
-      });
-    });
-    var sendBtn = $("[data-send-card]");
-    var boxes = $$("[data-recipient]");
-    var recount = function () {
-      var n = boxes.filter(function (b) { return b.checked; }).length;
-      sendBtn.disabled = !n; sendBtn.textContent = n ? "Send to " + n : "Send";
-    };
-    boxes.forEach(function (b) { b.addEventListener("change", recount); });
-    var to = params.get("to");
-    if (to) { var pre = boxes.filter(function (b) { return b.getAttribute("data-rid") === to; })[0]; if (pre) { pre.checked = true; recount(); } }
-    sendBtn.addEventListener("click", function () {
-      var n = boxes.filter(function (b) { return b.checked; }).length;
-      closeSheets(); toast("Card sent to " + n + (n === 1 ? " person." : " chats."));
-      setTimeout(function () { location.href = "messages.html#cards"; }, 1100);
-    });
-    paint();
-  }
-
   var call = $("[data-call]");
   if (call) {
     var people = JSON.parse($("#people-data").textContent);
