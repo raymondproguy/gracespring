@@ -328,31 +328,6 @@
   }
   /* Hero progress on audio page: play button just navigates, nothing else needed */
 
-  /* ---------- Share sheet (devotional) ---------- */
-  var shareInfo = null;
-  document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-share-btn]");
-    if (!b) return;
-    var url = new URL(b.getAttribute("data-share-url"), location.href).href;
-    var title = b.getAttribute("data-share-title");
-    shareInfo = { title: title, url: url, text: "“" + title + "”, a devotional from GraceSpring Family Church" };
-    $("#share [data-share-title]").textContent = title;
-    $("#share [data-share-cover]").src = "assets/img/" + b.getAttribute("data-share-cover") + ".jpg";
-    $("#share [data-share-wa]").href = "https://wa.me/?text=" + encodeURIComponent(shareInfo.text + " " + url);
-    openSheet("share");
-  });
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("[data-copy-link]") && shareInfo) {
-      var done = function () { closeSheets(); toast("Link copied."); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareInfo.url).then(done, done);
-      else done();
-    }
-    if (e.target.closest("[data-native-share]") && shareInfo) {
-      if (navigator.share) navigator.share({ title: shareInfo.title, text: shareInfo.text, url: shareInfo.url }).catch(function () {});
-      else toast("Sharing isn't available on this device.");
-    }
-  });
-
   /* ---------- Confirm sheet (delete) ---------- */
   function confirmDelete(title, message, yes, label) {
     var el = document.getElementById("confirm");
@@ -607,4 +582,5 @@
       b.addEventListener("click", function () { $("[data-self]").classList.toggle("is-off", !b.classList.contains("is-on")); });
     });
   }
+  window.GS = { $: $, $$: $$, params: params, toast: toast, openSheet: openSheet, closeSheets: closeSheets, confirmDelete: confirmDelete };
 })();

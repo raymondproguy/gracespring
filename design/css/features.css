@@ -1,0 +1,58 @@
+/* ==========================================================================
+   Feature styles: feed posts, shared-post image, chat extras, lock screens.
+   Loaded after style.css and glass.css.
+   ========================================================================== */
+:root { --navy: #050f6a; --gold: #e9c46a; --gold-ink: #b8892a; }
+
+/* ---------- Feed posts (same shape as devotional posts) ---------- */
+.fpost { padding: 20px 0 6px; border-bottom: 1px solid var(--line); }
+.fp-link { display: block; margin-top: 12px; }
+.fp-link > span { display: block; }
+.fp-img { border-radius: var(--r-img); overflow: hidden; }
+.fp-img img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; transition: transform 0.5s ease; }
+a.fp-link:hover .fp-img img { transform: scale(1.03); }
+.fp-text { margin-top: 12px; font-size: 17px; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+.fp-img + .fp-text { margin-top: 12px; }
+.fp-text-lg { font-size: 22px; line-height: 1.35; letter-spacing: -0.02em; }
+.fpost .post-actions { margin-top: 8px; }
+.fpost.full { border-bottom: 0; }
+.fpost.full .fp-text { font-size: 19px; line-height: 1.6; }
+.fpost.full .fp-text-lg { font-size: 24px; }
+.post-when { margin-top: 12px; font-size: 14px; color: var(--muted); }
+.act[data-repost].is-on { color: var(--link); }
+.act[data-repost].is-on .i { fill: none; stroke-width: 2.4; }
+
+/* ---------- The shared-post look: navy quote card inside a branded frame ---------- */
+.scard { position: relative; display: block; margin-top: 12px; padding: 30px 26px 26px; border-radius: 22px; background: var(--navy); color: #fff; overflow: hidden; }
+.scard::before { content: "\201C"; display: block; height: 40px; font-family: Georgia, "Times New Roman", serif; font-size: 92px; font-weight: 700; line-height: 0.85; color: var(--gold); }
+.scard::after { content: ""; position: absolute; top: -90px; right: -90px; width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgb(255 255 255 / 0.12); box-shadow: 0 0 0 30px rgb(255 255 255 / 0.03), 0 0 0 31px rgb(255 255 255 / 0.1); pointer-events: none; }
+.scard-text { position: relative; margin-top: 22px; font-size: clamp(21px, 6vw, 28px); font-weight: 600; line-height: 1.26; letter-spacing: -0.022em; overflow-wrap: anywhere; }
+.scard-line { display: block; width: 64px; height: 4px; margin: 22px 0 14px; border-radius: 3px; background: var(--gold); }
+.scard-by { position: relative; font-size: 14.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
+.scard.has-img { display: flex; flex-direction: column; justify-content: flex-end; min-height: 280px; background-size: cover; background-position: center; }
+.scard.has-img::before { height: 0; opacity: 0; }
+.scard.has-img .scard-text { margin-top: 0; }
+a.scard:hover { filter: brightness(1.06); }
+
+.sframe { padding: 14px; border-radius: 26px; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 10px 30px rgb(20 20 60 / 0.08); }
+.sframe-head { display: flex; align-items: center; gap: 12px; padding: 4px 4px 14px; }
+.sframe-head .av { width: 48px; height: 48px; padding: 0; background: var(--navy); }
+.sframe-head .av img { object-fit: contain; }
+.sframe-head b { display: block; font-size: 14.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--navy); line-height: 1.25; }
+:root[data-theme="dark"] .sframe-head b { color: var(--ink); }
+.sframe-head small { display: block; font-size: 14px; color: var(--muted); }
+.sframe-head > span { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.sframe .scard { margin-top: 0; }
+.sframe-foot { display: flex; justify-content: space-between; gap: 8px; padding: 14px 4px 6px; font-size: 10.5px; letter-spacing: 0.1em; color: var(--muted); }
+.sframe-foot b { font-weight: 700; color: var(--gold-ink); }
+.sframe .post-actions { margin: 8px -6px -6px; padding-top: 4px; border-top: 1px solid var(--line); }
+.fpost-shared { padding-top: 22px; border-bottom: 0; }
+.share-frame { box-shadow: none; margin-top: 14px; }
+.share-frame .scard-text { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.share-frame .scard { padding: 22px 20px 20px; }
+.share-frame .scard::before { height: 30px; font-size: 70px; }
+.share-frame .scard-text { font-size: 19px; margin-top: 14px; }
+.share-frame .scard.has-img { min-height: 220px; }
+.sheet .btn{white-space:nowrap}
+.sframe-foot{font-size:10px}
+.sframe-foot span{white-space:nowrap}
