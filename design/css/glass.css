@@ -24,7 +24,7 @@
 .main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 44px); }
 .tabbar {
   inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px; margin: 0 auto; max-width: 460px;
-  height: var(--tabbar-h); padding: 5px; gap: 2px; grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: var(--tabbar-h); padding: 5px; gap: 2px; grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--glass-edge); border-radius: 34px;
   background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   box-shadow: var(--glass-shadow), var(--glass-hl);
