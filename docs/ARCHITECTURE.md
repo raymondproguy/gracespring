@@ -28,12 +28,12 @@ Each module owns its tables, queries, handlers and tests. Modules talk through G
 
 - identity: profiles, roles, follows, audit log
 - content: devotionals (categories, series, episodes), audio (categories, series, tracks), events and RSVPs
-- social: posts, comments, likes, reposts, reports
+- social: feed posts, comments, likes, reposts, reports
 - prayer: requests, prayed-by marks, testimonies
-- messaging: conversations, members, messages, receipts, verse cards (v3)
+- messaging: 1 to 1 conversations, announcements channel, messages, voice notes and files, receipts, bot replies (v2). Groups later.
 - notifications: devices and subscriptions, preferences, delivery
 - media: uploads, variants, validation
-- calls: LiveKit token issuing, call log (v4)
+- calls: parked. LiveKit token issuing and call log come back with the calls feature.
 - admin: admin only endpoints and moderation tools
 
 ## Request path
@@ -59,7 +59,7 @@ Each module owns its tables, queries, handlers and tests. Modules talk through G
 - Typing and presence are ephemeral in Redis with short expiry, never written to Postgres.
 - Offline members get web push (and later mobile push).
 
-## Calls (v4)
+## Calls (parked, later)
 
 - LiveKit server runs on the same host first or LiveKit Cloud. The API issues short lived join tokens after checking membership and permission.
 - Prayer rooms: hosts and speakers have publish rights, listeners subscribe only, raise hand is a data message.

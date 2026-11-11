@@ -7,9 +7,8 @@ Running record of what has been built. Newest entries first in the log. Keep the
 | Release | Status | Branch or tag | Notes |
 |---|---|---|---|
 | v1 Foundations and content | In progress | feat/shared-database | Repo setup, auth spike, API foundation, shared local database, auth middleware, profiles and role administration done; reference UI port in progress |
-| v2 Community and prayer | Not started | | |
-| v3 Chat and verse cards | Not started | | |
-| v4 Calls and live | Not started | | |
+| v2 Feed, prayer, chat and notifications | Not started | | Design screens done in feat/design-ios-refresh |
+| Later (parked) | Parked | | Calls, groups, ministries, community. Screens in design/later |
 | Mobile | Paused | | |
 
 ## Feature checklist
@@ -33,28 +32,33 @@ Mark with the date and the commit or tag when done.
 - [ ] Deploy and tag v1
 
 ### v2
-- [ ] Community feed
+- [ ] Home feed and post pages
+- [ ] Branded share image and link previews
 - [ ] Prayer wall and testimonies
-- [ ] Notifications (web push, email)
-- [ ] Search
-- [ ] Moderation tools (reports, hide, remove)
-
-### v3
-- [ ] Conversations and messages API
+- [ ] Conversations and messages API (1 to 1)
 - [ ] WebSocket gateway
-- [ ] Groups and announcements channel
-- [ ] Verse cards
-- [ ] Block, report, mute
+- [ ] Voice notes, photos and files in chat
+- [ ] Announcements channel
+- [ ] GraceSpring Bot
+- [ ] Notifications (web push, settings)
+- [ ] App lock
+- [ ] Search
+- [ ] Moderation tools (reports, hide, remove) and block, report, mute
+- [ ] Church website with install button
 
-### v4
-- [ ] LiveKit integration
-- [ ] Voice and video calls
+### Later (parked)
+- [ ] Community and ministries
+- [ ] Groups
+- [ ] LiveKit, voice and video calls
 - [ ] Prayer rooms
 - [ ] Live service streaming
 
 ## Log
 
 Format: date, branch, what changed, what to know.
+
+- 2026-11-11, feat/scope-v1: moved calls, groups, ministries and community screens to design/later (13 pages, with a README), cut the tab bar to four tabs, removed the Calls tab and New group from Messages, rebuilt the docs for the smaller scope (BUILD_PLAN, HANDOFF, FRONTEND, ARCHITECTURE, BACKEND, DEPLOYMENT, DECISIONS 18 to 24, NEXT, PROGRESS) and added docs/FEATURES.md with the infrastructure plan.
+- 2026-11-11, feat/design-ios-refresh: design/ got the iOS type and liquid glass look, verse cards removed, a home feed with text and image posts and post pages, a branded share image, WhatsApp style chat with voice notes and files and contacts only new chat, the GraceSpring Bot, a notification banner and permission screens, and app lock screens (Face ID, fingerprint, PIN, simulated). Home screen layout in design/ changed, so apps/web Home needs a new port.
 
 - 2026-10-30, feat/monorepo-skeleton: added pnpm workspace, Go API module with a health route, React/Vite TypeScript shell, shared package, health-only OpenAPI contract, Makefile, and CI for formatting, vet, tests, lint and build. Local development commands are in README.md.
 - 2026-10-30, feat/api-foundation: added environment configuration, JSON slog logging, chi routing and middleware, structured API errors, request IDs, health/readiness routes, PostgreSQL pool, graceful shutdown, Goose migration command and sqlc config/tool. Database readiness is checked on /ready; health stays independent of dependencies.
@@ -78,4 +82,4 @@ Format: date, branch, what changed, what to know.
 
 ## Deviations from the plan
 
-(none yet)
+- 2026-11-11: calls, groups, ministries and community were parked and the release plan went from four releases to v1, v2 and a parked list (decision 18). design/ was edited on the owner's request, which is an exception to CLAUDE.md rule 8.
