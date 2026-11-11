@@ -5,7 +5,7 @@ Single server for now. csag ships with the product on the same machine. About 20
 ## Server layout
 
 - OS: current Ubuntu LTS (or similar), firewall allowing only 22, 80 and 443. SSH keys only, password login off, fail2ban or equivalent.
-- Services (systemd): caddy, postgresql, redis, csag, gracespring-api, gracespring-worker (and gracespring-gateway from v3, livekit from v4).
+- Services (systemd): caddy, postgresql, redis, csag, gracespring-api, gracespring-worker (and gracespring-gateway from v2; livekit only if calls come back).
 - Dedicated unprivileged user for the app and for csag. Files owned by that user, secrets readable only by it.
 - Directories: /opt/gracespring/releases/<tag>/ (binaries and web build), /opt/gracespring/current (symlink), /etc/gracespring/ (env files, mode 600), /var/lib/gracespring/media (uploads), /var/backups/gracespring/.
 

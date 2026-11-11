@@ -18,11 +18,11 @@ React, Vite, TypeScript (strict), TanStack Router and TanStack Query, plain CSS 
 
 ## Navigation
 
-- Mobile tab bar: Home, Audio, Devotional, Chats, Community.
+- Mobile tab bar: Home, Audio, Devotional, Chats. Prayer, Growth and Events open from Home shortcuts.
 - Home top bar: search, Events (calendar icon), notifications, profile avatar.
-- Desktop sidebar: Home, Audio, Devotional, Events, Prayer, Growth, Community, Messages, Ministries, then Search, Profile, Settings.
+- Desktop sidebar: Home, Audio, Devotional, Events, Prayer, Growth, Messages, then Search, Profile, Settings.
 - Admin links appear only for admins (Settings, Church admin, and the pencil on Devotional).
-- Chat and call screens hide the tab bar.
+- Chat screens hide the tab bar.
 
 ## Route map (static page to route)
 
@@ -36,15 +36,18 @@ React, Vite, TypeScript (strict), TanStack Router and TanStack Query, plain CSS 
 | devotional, devotional-series-*, devotional-category-*, devotional-<episode> | /devotional, /devotional/series/:id, /devotional/categories/:id, /devotional/:episodeId | v1 |
 | admin-devotional, admin-devotional-new | /admin/devotionals, /admin/devotionals/new, /admin/devotionals/:id/edit | v1 |
 | events, event-details | /events, /events/:id | v1 |
-| growth, ministries | /growth, /ministries | v2 |
-| community, create-post | /community, /community/new | v2 |
+| post-<id> | /posts/:id | v2 |
+| create-post | /posts/new (admin) | v2 |
+| growth | /growth | v2 |
 | prayer | /prayer | v2 |
 | search | /search | v2 |
-| messages, chat-<id>, chat-info-<id>, new-chat, new-group | /messages, /messages/:conversationId, /messages/:conversationId/info, /messages/new, /messages/new-group | v3 |
-| card-new, card-<id> | /cards/new, /cards/:id | v3 |
-| call-voice, call-video, call-incoming, call-room | /call/voice/:userId, /call/video/:userId, /call/incoming, /rooms/:id | v4 |
+| messages, chat-<id>, chat-info-<id>, new-chat | /messages, /messages/:conversationId, /messages/:conversationId/info, /messages/new | v2 |
+| chat-bot | /messages/bot | v2 |
+| permission-notifications, notification-settings | /welcome/notifications, /settings/notifications | v2 |
+| lock-setup, pin-setup, lock, lock-settings | /welcome/lock, /welcome/pin, /unlock, /settings/lock | v2 |
+| later/* (community, ministries, new-group, group chats, call-voice, call-video, call-incoming, call-room) | parked, no routes | Later |
 
-Static page names with a person or group name (chat-sarah, chat-youth) are samples. Real chats load by conversation id.
+Static page names with a person name (chat-sarah) are samples. Real chats load by conversation id.
 
 ## Data fetching
 

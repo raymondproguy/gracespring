@@ -40,11 +40,11 @@ Social: posts, post_media, comments (parent_id for replies, edited_at, deleted_a
 
 Prayer: prayer_requests (visibility, anonymous flag, status), prayer_marks (request_id, user_id), testimonies.
 
-Messaging (v3): conversations (kind dm, group or channel), conversation_members (role, muted_until, last_read_seq), messages (conversation_id, seq, sender_id, body, kind text or card, client_id, created_at, deleted_at), verse_cards (template, verse, reference, note, sender_id), card_recipients, blocks (blocker, blocked).
+Messaging (v2): conversations (kind dm or channel; group is parked), conversation_members (role, muted_until, last_read_seq), messages (conversation_id, seq, sender_id, body, kind text, voice, image or file, attachment_id, duration, client_id, created_at, deleted_at), blocks (blocker, blocked). Chat is only between users who both have accounts. Invites for people not on the app go through a shareable link, not a message.
 
 Notifications: devices or push_subscriptions, notification_preferences (quiet hours), notifications (user_id, kind, payload, read_at).
 
-Calls (v4): call_log (kind, started_at, ended_at, initiator), call_participants, prayer_rooms (host, status, schedule).
+Calls (parked, later): call_log (kind, started_at, ended_at, initiator), call_participants, prayer_rooms (host, status, schedule).
 
 Migrations: goose, forward only in production. Every migration must be backward compatible with the previous app version (add columns nullable or with defaults, backfill, then tighten in a later release). Never drop data in the same release that stops using it.
 
