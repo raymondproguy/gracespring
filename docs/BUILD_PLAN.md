@@ -1,6 +1,6 @@
 # Build plan
 
-Releases are shippable. Each one is built in small steps on feature branches, merged to main after review, deployed and tagged. Start v2 only after v1 is deployed and the test users have used it.
+Releases are shippable. Each one is built in small steps on feature branches, merged to main after review, deployed and tagged. Start the next release only after the previous one is deployed and the test users have used it.
 
 Mobile (React Native with Expo) is paused. When it resumes it reuses the API, the generated client and shared packages.
 
@@ -25,52 +25,42 @@ Acceptance
 - All screens have loading, empty and error states.
 - Backups run nightly and a restore has been tested.
 
-## v2: Community and prayer
+## v2: Feed, prayer, chat and notifications
 
 Scope
-- Community feed: posts with photos, comments, likes, reposts, follow, report
-- Prayer wall: requests with visibility and anonymous option, "I prayed" marks, answered prayer testimonies
-- Notifications: in app list, web push, email digest, preferences and quiet hours
-- Search across devotionals, audio, events, people and posts
-- Moderation tools: report queue, hide, remove, warn, ban, audit entries
-- Growth and ministries pages
+- Home feed: posts by church admins as text, quote cards and image plus text. Likes, comments (same behaviour as devotional comments), repost and share. A post page for each post.
+- Branded share image: any post can be shared as a picture (church frame, navy quote card, gold accent) or as a link with a preview (Open Graph tags). The picture is drawn in the browser.
+- Prayer wall: requests with visibility and anonymous option, "I prayed" marks, answered prayer testimonies. Growth pages.
+- Chat, 1 to 1 only: message only people who have an account (contacts who are not on the app can be invited), voice notes, photo and document upload, read marks, typing, reconnect and catch up. Read only announcements channel (admins post). Block, report, mute.
+- GraceSpring Bot: a chat that answers questions about service times, location, prayer, the devotional and Bible verses. Rule based answers first.
+- Notifications: web push, in app banner, permission screen, notification settings, quiet hours, optional email digest.
+- App lock: Face ID, fingerprint or PIN to open the app (device side, see docs/FEATURES.md).
+- Search across devotionals, audio, events and posts.
+- Moderation tools: report queue, hide, remove, warn, ban, audit entries.
 
 Acceptance
 - Posting, commenting and prayer marks feel instant (optimistic) and survive refresh.
 - A reported post appears in the admin queue and can be hidden in two clicks.
-- A user can mute categories of notification and set quiet hours.
-
-## v3: Chat and verse cards
-
-Scope
-- Conversations: 1 to 1, groups, read only announcements channel (admins post)
-- WebSocket gateway, delivery, read marks, typing, reconnect and catch up
-- Group management: create, add and remove members, group admins, leave, mute
-- Block, report, mute
-- Verse cards: maker with templates, verse suggestions, note, send to one, many or groups, received and sent lists, save
-- Push for new messages and cards when offline
-- Safety rules for minors (docs/SECURITY.md) enforced in the API
-
-Acceptance
 - A message reaches an online recipient in under a second and an offline one as a push.
 - Messages are never duplicated or lost across reconnects (tested).
-- Blocked users cannot contact each other.
-- Only admins can post in the announcements channel.
+- Blocked users cannot contact each other. Only admins can post in the announcements channel.
+- A shared post produces the branded image on Android and iPhone, and a link preview in WhatsApp.
+- A user can mute categories of notification and set quiet hours.
+- Safety rules for minors (docs/SECURITY.md) are enforced in the API.
 
-## v4: Calls, rooms and live
+## Later (parked, not scheduled)
 
-Scope
-- LiveKit setup, join tokens from the API
-- Voice and video calls between two users, incoming call screen, call history
-- Group prayer rooms: host, speakers, listeners, raise hand, scheduled rooms with reminders
-- Live service streaming through a hosted provider (Cloudflare Stream or Mux), with replay links
+These were planned as v2 to v4 and are parked so the first releases stay small and fast. The finished screens are kept in design/later/. Bring one back only when the owner asks, on its own feature branch, and add its nav entry back at the same time.
 
-Acceptance
-- A call connects in under 5 seconds on typical mobile data and recovers from a short network drop.
-- Only invited speakers can be heard in a prayer room.
-- Call permissions respect blocks.
+- Community: people, ministries, groups, community feed posts by members.
+- Group chats, group management, group admins.
+- Voice and video calls, incoming call screen, call history, voicemail.
+- Group prayer rooms (LiveKit) and live service streaming (Cloudflare Stream or Mux).
+- Verse cards (removed from the design).
 
-## After v4
+Acceptance criteria that applied to these (call setup time, prayer room speakers, call permissions) are kept in docs/FEATURES.md.
+
+## After v2
 
 - Mobile app (React Native with Expo): push, background audio, calls, offline downloads
 - Giving (hosted checkout, receipts), if decided
