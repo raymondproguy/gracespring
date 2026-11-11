@@ -328,31 +328,6 @@
   }
   /* Hero progress on audio page: play button just navigates, nothing else needed */
 
-  /* ---------- Share sheet (devotional) ---------- */
-  var shareInfo = null;
-  document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-share-btn]");
-    if (!b) return;
-    var url = new URL(b.getAttribute("data-share-url"), location.href).href;
-    var title = b.getAttribute("data-share-title");
-    shareInfo = { title: title, url: url, text: "“" + title + "”, a devotional from GraceSpring Family Church" };
-    $("#share [data-share-title]").textContent = title;
-    $("#share [data-share-cover]").src = "assets/img/" + b.getAttribute("data-share-cover") + ".jpg";
-    $("#share [data-share-wa]").href = "https://wa.me/?text=" + encodeURIComponent(shareInfo.text + " " + url);
-    openSheet("share");
-  });
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("[data-copy-link]") && shareInfo) {
-      var done = function () { closeSheets(); toast("Link copied."); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareInfo.url).then(done, done);
-      else done();
-    }
-    if (e.target.closest("[data-native-share]") && shareInfo) {
-      if (navigator.share) navigator.share({ title: shareInfo.title, text: shareInfo.text, url: shareInfo.url }).catch(function () {});
-      else toast("Sharing isn't available on this device.");
-    }
-  });
-
   /* ---------- Confirm sheet (delete) ---------- */
   function confirmDelete(title, message, yes, label) {
     var el = document.getElementById("confirm");
@@ -579,50 +554,6 @@
     });
   }
 
-  var maker = $("[data-card-maker]");
-  if (maker) {
-    var vcard = $("[data-v-card]"), fv = $("textarea[name=verse]", maker), fr = $("input[name=ref]", maker), fn = $("input[name=note]", maker);
-    var paint = function () {
-      $("[data-v-verse]", vcard).textContent = fv.value.trim() || "Your verse appears here";
-      $("[data-v-ref]", vcard).textContent = fr.value.trim();
-      var n = $("[data-v-note]", vcard); n.textContent = fn.value.trim(); n.hidden = !fn.value.trim();
-    };
-    [fv, fr, fn].forEach(function (f) { f.addEventListener("input", paint); });
-    $$("[data-tpl]", maker).forEach(function (s) {
-      s.addEventListener("click", function () {
-        $$("[data-tpl]", maker).forEach(function (o) { o.setAttribute("aria-pressed", String(o === s)); });
-        vcard.className = vcard.className.replace(/tpl-\S+/, "tpl-" + s.getAttribute("data-tpl"));
-      });
-    });
-    $$("[data-verse]", maker).forEach(function (c) {
-      c.addEventListener("click", function () {
-        $$("[data-verse]", maker).forEach(function (o) { o.setAttribute("aria-pressed", String(o === c)); });
-        fv.value = c.getAttribute("data-verse"); fr.value = c.getAttribute("data-ref"); paint();
-      });
-    });
-    $$("[data-vstyle]", maker).forEach(function (b) {
-      b.addEventListener("click", function () {
-        $$("[data-vstyle]", maker).forEach(function (o) { o.setAttribute("aria-selected", String(o === b)); });
-        vcard.classList.toggle("vstyle-sans", b.getAttribute("data-vstyle") === "sans");
-      });
-    });
-    var sendBtn = $("[data-send-card]");
-    var boxes = $$("[data-recipient]");
-    var recount = function () {
-      var n = boxes.filter(function (b) { return b.checked; }).length;
-      sendBtn.disabled = !n; sendBtn.textContent = n ? "Send to " + n : "Send";
-    };
-    boxes.forEach(function (b) { b.addEventListener("change", recount); });
-    var to = params.get("to");
-    if (to) { var pre = boxes.filter(function (b) { return b.getAttribute("data-rid") === to; })[0]; if (pre) { pre.checked = true; recount(); } }
-    sendBtn.addEventListener("click", function () {
-      var n = boxes.filter(function (b) { return b.checked; }).length;
-      closeSheets(); toast("Card sent to " + n + (n === 1 ? " person." : " chats."));
-      setTimeout(function () { location.href = "messages.html#cards"; }, 1100);
-    });
-    paint();
-  }
-
   var call = $("[data-call]");
   if (call) {
     var people = JSON.parse($("#people-data").textContent);
@@ -651,4 +582,5 @@
       b.addEventListener("click", function () { $("[data-self]").classList.toggle("is-off", !b.classList.contains("is-on")); });
     });
   }
+  window.GS = { $: $, $$: $$, params: params, toast: toast, openSheet: openSheet, closeSheets: closeSheets, confirmDelete: confirmDelete };
 })();

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unlock · GraceSpring</title>
+<meta name="description" content="GraceSpring Family Church: worship, prayer, events and community.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/glass.css">
+<link rel="stylesheet" href="css/features.css">
+<script>try{var t=localStorage.getItem('gs-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>
+</head>
+<body class="no-tabbar lockpage">
+<main class="cover lock">
+  <img class="bg" src="assets/img/church.jpg" alt="">
+  
+  <div class="lock-card pin-card" data-pin-mode="unlock">
+  <div class="logo-badge"><img src="assets/img/mark.png" alt="GraceSpring emblem"></div>
+  <h1>Welcome back, Raymond</h1>
+  <p data-pin-msg>Unlock GraceSpring to continue.</p>
+  <button class="bio-btn" type="button" data-bio-unlock hidden><span data-bio-btn-icon></span><b data-bio-btn-label>Unlock with Face ID</b></button>
+  <div data-pin-block hidden><div class="pin-dots" data-pin-dots><i></i><i></i><i></i><i></i></div><div class="keypad" data-keypad><button type="button" class="key" data-key="1"><b>1</b><small></small></button><button type="button" class="key" data-key="2"><b>2</b><small>ABC</small></button><button type="button" class="key" data-key="3"><b>3</b><small>DEF</small></button><button type="button" class="key" data-key="4"><b>4</b><small>GHI</small></button><button type="button" class="key" data-key="5"><b>5</b><small>JKL</small></button><button type="button" class="key" data-key="6"><b>6</b><small>MNO</small></button><button type="button" class="key" data-key="7"><b>7</b><small>PQRS</small></button><button type="button" class="key" data-key="8"><b>8</b><small>TUV</small></button><button type="button" class="key" data-key="9"><b>9</b><small>WXYZ</small></button><span class="key key-blank"></span><button type="button" class="key" data-key="0"><b>0</b></button><button type="button" class="key key-del" data-key="del" aria-label="Delete"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="m12 9 6 6"/><path d="m18 9-6 6"/></svg></button></div></div>
+  <button class="skip-link" type="button" data-use-pin hidden>Use PIN instead</button>
+  <a class="skip-link" href="signin.html" data-forgot>Sign out</a>
+</div>
+<template id="ico-face"><svg class="i i-xl" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg></template><template id="ico-finger"><svg class="i i-xl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg></template>
+</main>
+<div class="backdrop" id="bio" aria-hidden="true" role="dialog" aria-modal="true"><div class="sheet"><div class="bio" data-bio>
+  <div class="bio-ring"><span data-bio-icon></span></div>
+  <h2 data-bio-title>Face ID</h2>
+  <p class="muted" data-bio-msg>Look at your phone to continue.</p>
+  <button class="btn btn-outline" type="button" data-close>Cancel</button>
+</div>
+<template id="bio-face"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg></template><template id="bio-finger"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg></template><template id="bio-ok"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></template></div></div>
+<script src="js/main.js" defer></script>
+<script src="js/features.js" defer></script>
+</body>
+</html>

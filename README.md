@@ -32,6 +32,45 @@ Never commit to main directly. One branch per feature: `feat/<short-name>`, `fix
 
 The rules live in `docs/GIT_WORKFLOW.md`, section "Secret check before every commit". Never stage `.env` or any real credentials. Only `.env.example` files with placeholder values may be committed. A pre-commit hook script automating the check is planned under `deploy/scripts/`.
 
+## Design preview
+
+The `design/` folder is a clickable, front-end only preview of the whole app. It saves nothing and sends nothing. To view it:
+
+```
+cd design
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000` on a phone-sized window. Use a local server rather than opening files directly, because the share image feature draws on a canvas and browsers block that on `file://` pages.
+
+What the preview shows on this branch:
+
+- iOS look: system font stack, grouped lists, and a liquid glass layer (blurred translucent tab bar, sheets, buttons and chat bars) in light and dark mode.
+- Home feed with text posts, quote posts and image plus text posts, each with like, comment, repost and share, and a post page with comments.
+- Branded share image: any post can be shared as a picture (church frame, navy quote card, gold accent, "Share faith. Share hope.") or sent to WhatsApp or copied as a link.
+- Chats like WhatsApp: message only contacts who have a GraceSpring account (others can be invited), voice notes with a mic button, voicemail, photos and document upload, and an attach menu.
+- GraceSpring Bot: a chat that answers questions about service times, location, giving, prayer and Bible verses.
+- Phone style notification banner, a notification permission screen and notification settings.
+- Our own app lock: choose Face ID, fingerprint or a PIN after sign up, then unlock from a welcome style screen.
+
+| Home | Feed | Post |
+| --- | --- | --- |
+| ![Home](docs/screenshots/01-home.png) | ![Feed](docs/screenshots/02-home-feed.png) | ![Post](docs/screenshots/03-post.png) |
+
+| Share image | Messages | Chat with voice note |
+| --- | --- | --- |
+| ![Share image](docs/screenshots/04-share-image.png) | ![Messages](docs/screenshots/05-messages.png) | ![Chat](docs/screenshots/06-chat-voice.png) |
+
+| GraceSpring Bot | Notification banner | Dark mode |
+| --- | --- | --- |
+| ![Bot](docs/screenshots/07-bot.png) | ![Banner](docs/screenshots/11-banner.png) | ![Dark](docs/screenshots/12-home-dark.png) |
+
+| Notifications | App lock setup | Unlock |
+| --- | --- | --- |
+| ![Notifications](docs/screenshots/08-notifications-permission.png) | ![Lock setup](docs/screenshots/09-app-lock-setup.png) | ![Unlock](docs/screenshots/10-unlock-pin.png) |
+
+Verse cards were removed from chat. Events now open from the calendar icon on Home, and Chats sits in the bottom tab bar.
+
 ## Local development
 
 Requirements: Go 1.25+, Node.js 22.12+, and pnpm 12.9.1.
