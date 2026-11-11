@@ -1,0 +1,14 @@
+{
+  "name": "gracespring",
+  "private": true,
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @gracespring/web dev",
+    "build": "pnpm --filter @gracespring/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  }
+}

@@ -29,14 +29,16 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 ## Environment files (names only, values never in git)
 
-- /etc/gracespring/api.env: DATABASE_URL, REDIS_URL, AUTH_VERIFY settings (per spike), STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
+- /etc/gracespring/api.env: HTTP_ADDR (127.0.0.1:8080), DATABASE_URL, REDIS_URL, AUTH_BASE_URL, AUTH_JWT_SECRET (same HS256 secret as csag), CSAG_AUTH_SCHEMA=auth, STORAGE_DRIVER, MEDIA_PATH, MEDIA_BASE_URL, ALLOWED_ORIGINS, SENTRY_DSN, SMTP settings, VAPID keys for web push.
 - /etc/gracespring/csag.env as above (template in deploy/csag.env.example). The API and csag may point at the same DATABASE_URL host but use different users and schemas, and different Redis database numbers.
 - The repo contains only .env.example files with placeholders.
 
 ## Database
 
 - One database with two schemas: auth for csag and app for GraceSpring. Each has its own database user with rights only on its own schema. The csag connection string sets search_path to auth, the app sets it to app. If the schema test in docs/AUTH.md fails, use two databases on the same server instead.
-- Migrations run with the goose command at deploy time, before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed.
+- The API also reads only the configured csag users table's `id` and `email` columns to return the authoritative email in profiles. Production uses `auth.users`; the current local csag database uses `public.users`, so set `CSAG_AUTH_SCHEMA=public` locally. In either setup, grant the API role `USAGE` on csag's schema and column-level `SELECT (id, email)` on its users table. Do not grant table-wide access.
+- Migrations run with `gracespring-migrate up` (built from `apps/api/cmd/migrate`) before switching the release symlink. They must be backward compatible so the previous release still works if rollback is needed. The command supports `up` and `status` only, so production migrations stay forward-only.
+- Seed the first application admin once, after that person has signed in and the API has created their profile: `go run ./cmd/admin-seed <user-uuid>`. The command refuses to run if an admin already exists. Subsequent role changes use `PUT /v1/admin/users/{userID}/role` and are audited.
 - Postgres tuned for the machine size, connection pool in the API sized to match.
 
 ## Backups
@@ -48,8 +50,8 @@ Single server for now. csag ships with the product on the same machine. About 20
 
 1. All checks green on main. PROGRESS.md and docs updated.
 2. Take a fresh backup.
-3. Build on the server or in CI: API, worker, gateway binaries and the web bundle. Place them in releases/<tag>/.
-4. Run csag migrate if csag changed, then the app migrations.
+3. Build on the server or in CI: API, migration, worker and gateway binaries plus the web bundle. Place them in releases/<tag>/.
+4. Run csag migrate if csag changed, then `gracespring-migrate up` for the app migrations.
 5. Switch the current symlink and restart services one at a time. Check health and readiness.
 6. Smoke test: sign in, read a devotional, play audio, post a comment, admin publish.
 7. Tag the release (annotated, for example v1) on main and note it in PROGRESS.md.
