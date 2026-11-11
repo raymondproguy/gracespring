@@ -27,7 +27,7 @@ Key files: `docs/BUILD_PLAN.md` (releases and acceptance criteria), `docs/FEATUR
 
 ## Branches and commits
 
-Never commit to main directly. One branch per feature: `feat/<short-name>`, `fix/<short-name>`, `docs/<short-name>`, `chore/<short-name>`. Commit often, one step per commit. Full rules in `docs/GIT_WORKFLOW.md`.
+Never commit to main directly. One branch per feature: `feat/<short-name>`, holding all of that feature's work as small commits (API, web, tests, fixes and docs). Use `fix/`, `docs/` or `chore/` branches only for work that belongs to no feature. Commit often, one step per commit. Full rules in `docs/GIT_WORKFLOW.md`.
 
 ## Secret check before committing
 
