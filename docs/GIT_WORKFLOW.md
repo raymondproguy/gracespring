@@ -3,14 +3,17 @@
 ## Identity and attribution
 
 - Commit only as the git identity already configured on this machine. Do not run git config to change name or email.
-- Do not add Co-Authored-By, Signed-off-by for the assistant, "Generated with", session links or any other attribution to commit messages, tags, PR descriptions or code.
+- Do not add Co-Authored-By, Signed-off-by for the assistant, "Generated with", session links or any other attribution to commit messages, tags, PR descriptions or code. The one exception is a Co-authored-by trailer for a human collaborator whom the owner names.
 - Use only the git credentials already on this machine to push. Never store tokens in the repo, in remotes URLs, in scripts or in docs.
 
 ## Branches
 
 - main is always deployable. Never commit to it directly. Merge only after the owner approves.
-- One branch per feature: feat/<short-name>. Fixes: fix/<short-name>. Docs only: docs/<short-name>. Chores: chore/<short-name>.
+- One branch per feature: feat/<short-name>. A feature is something a user can see or use, such as devotionals, chat or app lock. Everything for that feature (API, web, migrations, tests, fixes found while building it, and its docs) goes on that one branch as separate small commits. Do not open a new branch for each endpoint, screen, fix or doc change.
+- Use fix/<short-name> only for a bug in something already merged, and docs/<short-name> or chore/<short-name> only for work that belongs to no feature, such as repo setup or tooling.
+- If a feature depends on another unmerged feature, branch from it and say so in NEXT.md and the PR.
 - Branch from an up to date main. Keep branches short lived. Rebase on main before asking for review.
+- Merge a branch to main only after the owner approves, then delete it.
 
 ## Commits
 
@@ -47,4 +50,4 @@ If a secret is committed by mistake: stop, do not push, tell the owner. If it wa
 
 ## Pull request text
 
-Short summary, what changed, how it was tested, which docs were updated, screenshots for UI work. No attribution lines.
+One pull request per feature branch. Short summary, what changed, how it was tested, which docs were updated, screenshots for UI work. No attribution lines.
