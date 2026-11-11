@@ -6,15 +6,15 @@ Main handoff for building the complete GraceSpring Family Church app. Read this 
 
 A church app for one church (GraceSpring Family Church), for members, leaders and admins.
 
-Member features: home, audio sermons (series and categories), devotionals (series, episodes, categories), events, prayer wall, community feed, profile and settings, search, verse cards, chats (1 to 1, groups, announcements channel), voice and video calls and live prayer rooms.
+Member features: home feed, audio sermons (series and categories), devotionals (series, episodes, categories), events, prayer wall, 1 to 1 chat with voice notes and files, announcements channel, GraceSpring Bot, push notifications, app lock, profile and settings, search. Parked for later (screens kept in design/later): community, ministries, group chats, voice and video calls, prayer rooms, live streaming.
 
 Admin features: post devotionals and audio, manage events, moderate content and reports, manage roles.
 
-Only church admins can post devotionals and announcements. Members can post in the community feed and chat.
+Only church admins can post devotionals, announcements and feed posts. Members comment, like, repost, pray and chat. Whether members may also create feed posts is an open question (docs/DECISIONS.md).
 
 ## 2. Current state
 
-- Static, UI only HTML/CSS/JS pages exist (about 95 pages). They define the look, layout and flows. See docs/FRONTEND.md for the page to route map.
+- Static, UI only HTML/CSS/JS pages exist (about 85 pages, plus 13 parked pages in design/later). They define the look, layout and flows. See docs/FRONTEND.md for the page to route map.
 - Nothing is wired to a backend yet.
 - About 20 test users will be on the system at first. Real data will exist, so treat every migration and deploy with care.
 - The csag auth binary is installed and is to be shipped on the same server as the product.
@@ -26,10 +26,8 @@ Built in releases, each one finished, tested and deployed before the next starts
 | Release | Content |
 |---|---|
 | v1 | Foundations, auth integration, profiles, roles, admin shell, devotionals, audio, events, uploads |
-| v2 | Community feed, prayer wall, notifications, search |
-| v3 | Chats, groups, announcements channel, verse cards |
-| v4 | Voice and video calls, prayer rooms, live streaming |
-| Later | Mobile app (React Native), giving, if confirmed |
+| v2 | Home feed and share image, prayer wall, 1 to 1 chat, announcements channel, bot, notifications, app lock, search, moderation |
+| Later | Community, ministries, groups, voice and video calls, prayer rooms, live streaming, mobile app (React Native), giving, if confirmed |
 
 Mobile is paused. Do not build it now, but do not block it either: keep the API contract and shared packages clean so it can be added.
 
@@ -39,8 +37,8 @@ Mobile is paused. Do not build it now, but do not block it either: keep the API 
 - Auth: csag, a separate process with its own database. Social login: GitHub and Google for now.
 - Web: React, Vite, TypeScript, TanStack Router and Query, built as a PWA.
 - Shared: OpenAPI contract, generated TypeScript client, shared types and validation.
-- Storage: S3 compatible object storage behind a storage interface. v1 default is local disk behind the reverse proxy, with Cloudflare R2 as the planned production driver.
-- Realtime and calls (v3, v4): WebSocket gateway, LiveKit.
+- Storage: S3 compatible object storage behind a storage interface. Local disk for development, Cloudflare R2 for production (audio and images). Audio and image fields hold URLs so the provider can change later.
+- Realtime (v2): WebSocket gateway for chat. Calls (LiveKit) are parked.
 - Reverse proxy and TLS: Caddy.
 
 ## 5. Repository layout
@@ -80,6 +78,7 @@ Move the existing static site into design/ as the first commit (use git mv so hi
 | docs/DEPLOYMENT.md | Single server setup, releases, backups, rollback |
 | docs/SECURITY.md | Secrets, authorization, privacy, moderation, minors |
 | docs/GIT_WORKFLOW.md | Branches, commits, tags, secret checks |
+| docs/FEATURES.md | Feature scope by release, parked features, install plan and infrastructure |
 | docs/DECISIONS.md | Decision log and open questions |
 
 ## 7. Definition of done for a feature
