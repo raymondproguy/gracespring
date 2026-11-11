@@ -1,12 +1,13 @@
 # GraceSpring Family Church app
 
-A church app for members, leaders and admins: audio sermons, devotionals, events, prayer wall, community feed, chats, verse cards, calls and live prayer rooms. React web app and Go API, with auth handled by a separate csag instance.
+A church app for members, leaders and admins: home feed, audio sermons, devotionals, events, prayer wall, 1 to 1 chat with voice notes, push notifications and app lock. React web app and Go API, with auth handled by a separate csag instance.
 
 ## Repository layout
 
 ```
 /
   design/              static HTML/CSS/JS reference UI (read only, do not edit)
+    later/             parked screens: calls, groups, community, ministries
   apps/
     api/               Go API, realtime gateway, workers (not yet created)
     web/               React web app (not yet created)
@@ -22,7 +23,7 @@ A church app for members, leaders and admins: audio sermons, devotionals, events
 
 Start with `CLAUDE.md`, then `HANDOFF.md`, `NEXT.md` and `PROGRESS.md`. The full docs map is in `HANDOFF.md`, section 6.
 
-Key files: `docs/BUILD_PLAN.md` (releases and acceptance criteria), `docs/FRONTEND.md` (porting the design pages), `docs/AUTH.md` (csag integration), `docs/GIT_WORKFLOW.md` (branches, commits, secret checks).
+Key files: `docs/BUILD_PLAN.md` (releases and acceptance criteria), `docs/FEATURES.md` (feature scope, parked features, install plan and infrastructure), `docs/FRONTEND.md` (porting the design pages), `docs/AUTH.md` (csag integration), `docs/GIT_WORKFLOW.md` (branches, commits, secret checks).
 
 ## Branches and commits
 
@@ -48,7 +49,7 @@ What the preview shows on this branch:
 - iOS look: system font stack, grouped lists, and a liquid glass layer (blurred translucent tab bar, sheets, buttons and chat bars) in light and dark mode.
 - Home feed with text posts, quote posts and image plus text posts, each with like, comment, repost and share, and a post page with comments.
 - Branded share image: any post can be shared as a picture (church frame, navy quote card, gold accent, "Share faith. Share hope.") or sent to WhatsApp or copied as a link.
-- Chats like WhatsApp: message only contacts who have a GraceSpring account (others can be invited), voice notes with a mic button, voicemail, photos and document upload, and an attach menu.
+- Chats like WhatsApp: message only contacts who have a GraceSpring account (others can be invited), voice notes with a mic button, photos and document upload, and an attach menu.
 - GraceSpring Bot: a chat that answers questions about service times, location, giving, prayer and Bible verses.
 - Phone style notification banner, a notification permission screen and notification settings.
 - Our own app lock: choose Face ID, fingerprint or a PIN after sign up, then unlock from a welcome style screen.
@@ -69,7 +70,9 @@ What the preview shows on this branch:
 | --- | --- | --- |
 | ![Notifications](docs/screenshots/08-notifications-permission.png) | ![Lock setup](docs/screenshots/09-app-lock-setup.png) | ![Unlock](docs/screenshots/10-unlock-pin.png) |
 
-Verse cards were removed from chat. Events now open from the calendar icon on Home, and Chats sits in the bottom tab bar.
+Verse cards were removed. Events open from the calendar icon on Home, and Chats sits in the bottom tab bar with Home, Audio and Devotional.
+
+Calls, group chats, ministries and community are parked for later. Their finished screens are in `design/later/` and nothing links to them. The scope is explained in `docs/FEATURES.md`.
 
 ## Local development
 
