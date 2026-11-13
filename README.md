@@ -1,5 +1,6 @@
 # GraceSpring Family Church app
 
+#just ignore
 A church app for members, leaders and admins: home feed, audio sermons, devotionals, events, prayer wall, 1 to 1 chat with voice notes, push notifications and app lock. React web app and Go API, with auth handled by a separate csag instance.
 
 ## Repository layout
